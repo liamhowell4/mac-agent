@@ -129,7 +129,7 @@
 <div class="toast" id="toast">Copied!</div>
 
 <script>
-const DOMAINS = ["calendar","mail","contacts","files","system","reminders","notes","maps","other"];
+const DOMAINS = ["calendar","mail","messages","contacts","files","system","music","reminders","notes","maps","web","other"];
 const TYPES = ["string","integer","number","boolean","array","object"];
 
 // ---- seed catalog (edit/adjust freely) ----
@@ -160,6 +160,14 @@ function seed() { return [
     p("to","array",false,"Recipient email addresses."),
     p("subject","string",false,"Subject line."),
     p("body","string",false,"Message body.")]),
+  t("messages.send","messages","Send an iMessage/SMS to a recipient.",false,false,false,[
+    p("recipient","string",true,"Contact name, phone number, or email to send to."),
+    p("body","string",true,"Message text.")]),
+  t("messages.list_unread","messages","List unread iMessage/SMS conversations.",true,false,false,[
+    p("limit","integer",false,"Max conversations to return.")]),
+  t("messages.search","messages","Search message history by text or contact.",true,false,false,[
+    p("query","string",true,"Search text."),
+    p("contact","string",false,"Restrict to a specific contact.")]),
   t("contacts.find","contacts","Look up a contact by name.",true,false,false,[
     p("name","string",true,"Name to search for.")]),
   t("contacts.create","contacts","Create a new contact.",false,false,false,[
