@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tooleval — Catalog Builder</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --line: #2a2f3a;
+    --txt: #e6e9ef; --muted: #8b93a3; --accent: #6ea8fe; --accent2: #7ee2b8;
+    --danger: #ff6b6b; --warn: #ffd166; --chip: #232838;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--txt);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: rgba(15,17,21,0.95);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+    padding: 14px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .spacer { flex: 1; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button {
+    font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel2); color: var(--txt); padding: 8px 12px; transition: .12s;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #07122b; border-color: var(--accent); font-weight: 650; }
+  button.good { background: var(--accent2); color: #06241a; border-color: var(--accent2); font-weight: 650; }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--danger); border-color: transparent; }
+  button.danger:hover { border-color: var(--danger); }
+  button.small { padding: 4px 9px; font-size: 12px; }
+  .tool {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 14px;
+  }
+  .tool.distractor { border-left: 3px solid var(--warn); }
+  .tool.heldout { border-right: 3px solid var(--accent); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+  .row > .col { flex: 1; min-width: 180px; }
+  label { display: block; font-size: 11px; color: var(--muted); margin: 0 0 3px; text-transform: uppercase; letter-spacing: .04em; }
+  input[type=text], textarea, select {
+    width: 100%; background: var(--panel2); border: 1px solid var(--line); color: var(--txt);
+    border-radius: 7px; padding: 7px 9px; font: inherit;
+  }
+  textarea { resize: vertical; min-height: 38px; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+  .flags { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+  .flags label { display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--txt); margin: 0; cursor: pointer; }
+  .toolhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .toolhead .badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--muted); }
+  .toolhead .badge.d { background: #3a3010; color: var(--warn); }
+  .toolhead .badge.h { background: #102a3a; color: var(--accent); }
+  .params { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 10px; }
+  .param { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+  .param .pname { flex: 0 0 150px; }
+  .param .ptype { flex: 0 0 110px; }
+  .param .pdesc { flex: 1; min-width: 140px; }
+  .param .preq { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; padding-top: 8px; font-size: 12px; color: var(--muted); }
+  .param .penum { flex: 0 0 150px; }
+  .small-muted { font-size: 11px; color: var(--muted); }
+  .out {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin-top: 8px;
+  }
+  pre {
+    background: #0b0d12; border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; overflow: auto; max-height: 360px; font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #cdd6e6;
+  }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--accent2); color: #06241a; padding: 10px 18px; border-radius: 10px;
+    font-weight: 650; opacity: 0; pointer-events: none; transition: .25s; z-index: 50;
+  }
+  .toast.show { opacity: 1; }
+  .count { color: var(--muted); font-size: 12px; }
+  .legend { color: var(--muted); font-size: 12px; display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
+  .legend b { color: var(--warn); } .legend i { color: var(--accent); font-style: normal; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>tooleval — Catalog Builder</h1>
+    <div class="sub">Define your canonical tool catalog, then Copy JSON and hand it back.</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="toolbar">
+    <button class="ghost small" onclick="loadSeed()">↺ Reset to seed</button>
+    <button class="ghost small" onclick="clearAll()">Clear all</button>
+    <button class="primary" onclick="addTool()">+ Add tool</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="legend">
+    <span><b>▌yellow left</b> = distractor (plausible-but-wrong, stresses selection/overcall)</span>
+    <span><i>blue right▐</i> = held_out (excluded from any future fine-tune split → measures generalization)</span>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="tools"></div>
+
+  <button class="primary" onclick="addTool()">+ Add tool</button>
+
+  <hr>
+
+  <div class="toolbar">
+    <button class="good" onclick="copyJSON()">⧉ Copy JSON</button>
+    <button onclick="downloadJSON()">⬇ Download JSON</button>
+    <button class="ghost" onclick="refreshOut()">↻ Refresh preview</button>
+    <span class="count" id="validity"></span>
+  </div>
+
+  <div class="out">
+    <label>Output preview (this is exactly what gets copied)</label>
+    <pre id="output"></pre>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+const DOMAINS = ["calendar","mail","contacts","files","system","reminders","notes","maps","other"];
+const TYPES = ["string","integer","number","boolean","array","object"];
+
+// ---- seed catalog (edit/adjust freely) ----
+function seed() { return [
+  t("calendar.list_events","calendar","List calendar events, optionally filtered by date or text query.",false,false,false,[
+    p("date","string",false,"Day to list, e.g. '2026-06-08' or 'today'."),
+    p("query","string",false,"Optional text to match in event titles.")]),
+  t("calendar.create_event","calendar","Create a new calendar event.",false,false,false,[
+    p("title","string",true,"Event title."),
+    p("start","string",true,"Start time, ISO or natural ('15:30')."),
+    p("end","string",false,"End time."),
+    p("attendees","array",false,"List of attendee emails.")]),
+  t("calendar.update_event","calendar","Update an existing calendar event by id.",false,false,false,[
+    p("event_id","string",true,"Id of the event to update."),
+    p("new_start","string",false,"New start time."),
+    p("new_end","string",false,"New end time."),
+    p("new_title","string",false,"New title.")]),
+  t("calendar.delete_event","calendar","Delete a calendar event by id.",false,false,false,[
+    p("event_id","string",true,"Id of the event to delete.")]),
+  t("mail.search","mail","Search the mailbox for messages.",true,false,false,[
+    p("query","string",true,"Search text."),
+    p("folder","string",false,"Folder to search, e.g. 'inbox'.")]),
+  t("mail.send","mail","Send an email immediately.",false,false,false,[
+    p("to","array",true,"Recipient email addresses."),
+    p("subject","string",false,"Subject line."),
+    p("body","string",false,"Message body.")]),
+  t("mail.create_draft","mail","Create an email draft without sending.",false,false,true,[
+    p("to","array",false,"Recipient email addresses."),
+    p("subject","string",false,"Subject line."),
+    p("body","string",false,"Message body.")]),
+  t("contacts.find","contacts","Look up a contact by name.",true,false,false,[
+    p("name","string",true,"Name to search for.")]),
+  t("contacts.create","contacts","Create a new contact.",false,false,false,[
+    p("name","string",true,"Full name."),
+    p("email","string",false,"Email address."),
+    p("phone","string",false,"Phone number.")]),
+  t("files.search","files","Search files by name or content.",true,false,false,[
+    p("query","string",true,"Search text."),
+    p("path","string",false,"Directory to scope the search.")]),
+  t("files.read","files","Read the contents of a file.",true,false,false,[
+    p("path","string",true,"Absolute path to the file.")]),
+  t("files.move","files","Move or rename a file.",false,false,false,[
+    p("src","string",true,"Source path."),
+    p("dest","string",true,"Destination path.")]),
+  t("files.delete","files","Delete a file.",false,false,true,[
+    p("path","string",true,"Path to delete.")]),
+  t("system.set_volume","system","Set the system output volume.",false,false,false,[
+    pe("level","integer",true,"Volume 0–100.",[])]),
+  t("system.toggle_dnd","system","Turn Do Not Disturb on or off.",false,false,false,[
+    p("enabled","boolean",true,"True to enable DND.")]),
+  t("system.get_battery","system","Get current battery percentage and charging state.",true,false,false,[]),
+  // distractors (look relevant, usually wrong choice)
+  t("reminders.create","reminders","Create a reminder/to-do item.",false,true,false,[
+    p("text","string",true,"Reminder text."),
+    p("due","string",false,"Due date/time.")]),
+  t("notes.create","notes","Create a note in the Notes app.",false,true,false,[
+    p("title","string",false,"Note title."),
+    p("body","string",false,"Note body.")]),
+];}
+
+function t(name,domain,desc,read_only,distractor,held_out,params){
+  return {name,domain,description:desc,read_only,distractor,held_out,params};
+}
+function p(name,type,required,description){ return {name,type,required,description,enumvals:""}; }
+function pe(name,type,required,description,enumArr){ return {name,type,required,description,enumvals:enumArr.join(", ")}; }
+
+let tools = seed();
+
+// ---- rendering ----
+const el = id => document.getElementById(id);
+function render(){
+  const root = el("tools"); root.innerHTML = "";
+  tools.forEach((tool,ti)=>{
+    const card = document.createElement("div");
+    card.className = "tool" + (tool.distractor?" distractor":"") + (tool.held_out?" heldout":"");
+    card.innerHTML = `
+      <div class="toolhead">
+        <strong>${escapeHtml(tool.name||"(unnamed)")}</strong>
+        <span class="badge">${escapeHtml(tool.domain)}</span>
+        ${tool.read_only?'<span class="badge">read-only</span>':'<span class="badge">mutating</span>'}
+        ${tool.distractor?'<span class="badge d">distractor</span>':''}
+        ${tool.held_out?'<span class="badge h">held-out</span>':''}
+        <div class="spacer" style="flex:1"></div>
+        <button class="danger small" data-del="${ti}">✕ remove</button>
+      </div>
+      <div class="row">
+        <div class="col"><label>Name (dotted)</label><input type="text" data-f="name" data-i="${ti}" value="${escapeAttr(tool.name)}" placeholder="domain.action"></div>
+        <div class="col" style="flex:0 0 160px"><label>Domain</label><select data-f="domain" data-i="${ti}">${DOMAINS.map(d=>`<option ${d===tool.domain?'selected':''}>${d}</option>`).join("")}</select></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="col"><label>Description (what the model reads)</label><textarea data-f="description" data-i="${ti}" placeholder="Concise, action-oriented...">${escapeHtml(tool.description)}</textarea></div>
+      </div>
+      <div class="flags">
+        <label><input type="checkbox" data-f="read_only" data-i="${ti}" ${tool.read_only?'checked':''}> read-only (safe lookup)</label>
+        <label><input type="checkbox" data-f="distractor" data-i="${ti}" ${tool.distractor?'checked':''}> distractor</label>
+        <label><input type="checkbox" data-f="held_out" data-i="${ti}" ${tool.held_out?'checked':''}> held-out</label>
+      </div>
+      <div class="params" id="params-${ti}">
+        <label>Parameters</label>
+        <div id="plist-${ti}"></div>
+        <button class="ghost small" data-addp="${ti}">+ Add parameter</button>
+      </div>`;
+    root.appendChild(card);
+    renderParams(ti);
+  });
+  el("count").textContent = `${tools.length} tools · ${tools.filter(x=>x.distractor).length} distractors · ${tools.filter(x=>x.held_out).length} held-out`;
+  refreshOut();
+}
+
+function renderParams(ti){
+  const list = el(`plist-${ti}`); list.innerHTML="";
+  tools[ti].params.forEach((pr,pi)=>{
+    const div = document.createElement("div");
+    div.className="param";
+    div.innerHTML = `
+      <div class="pname"><input type="text" data-pf="name" data-i="${ti}" data-pi="${pi}" value="${escapeAttr(pr.name)}" placeholder="param_name"></div>
+      <div class="ptype"><select data-pf="type" data-i="${ti}" data-pi="${pi}">${TYPES.map(t=>`<option ${t===pr.type?'selected':''}>${t}</option>`).join("")}</select></div>
+      <div class="pdesc"><input type="text" data-pf="description" data-i="${ti}" data-pi="${pi}" value="${escapeAttr(pr.description)}" placeholder="description"></div>
+      <div class="penum"><input type="text" data-pf="enumvals" data-i="${ti}" data-pi="${pi}" value="${escapeAttr(pr.enumvals)}" placeholder="enum (a, b, c)"></div>
+      <div class="preq"><label style="margin:0;display:flex;gap:5px;align-items:center;text-transform:none;font-size:12px;"><input type="checkbox" data-pf="required" data-i="${ti}" data-pi="${pi}" ${pr.required?'checked':''}> req</label></div>
+      <button class="danger small" data-delp="${ti}" data-pi="${pi}">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+// ---- events (delegated) ----
+document.addEventListener("input", e=>{
+  const t=e.target;
+  if(t.dataset.f!==undefined && t.dataset.i!==undefined){
+    const i=+t.dataset.i, f=t.dataset.f;
+    tools[i][f] = t.type==="checkbox" ? t.checked : t.value;
+    if(["read_only","distractor","held_out","domain"].includes(f)) render(); else { updateHead(i); refreshOut(); }
+  }
+  if(t.dataset.pf!==undefined){
+    const i=+t.dataset.i, pi=+t.dataset.pi, f=t.dataset.pf;
+    tools[i].params[pi][f] = t.type==="checkbox" ? t.checked : t.value;
+    refreshOut();
+  }
+});
+document.addEventListener("click", e=>{
+  const t=e.target;
+  if(t.dataset.del!==undefined){ tools.splice(+t.dataset.del,1); render(); }
+  if(t.dataset.addp!==undefined){ tools[+t.dataset.addp].params.push(p("","string",false,"")); render(); }
+  if(t.dataset.delp!==undefined){ tools[+t.dataset.delp].params.splice(+t.dataset.pi,1); render(); }
+});
+
+function updateHead(){ /* light update; full re-render handles names on refresh */ refreshOut(); }
+function addTool(){ tools.push(t("new.tool","other","",false,false,false,[])); render(); window.scrollTo(0,document.body.scrollHeight); }
+function clearAll(){ if(confirm("Remove all tools?")){ tools=[]; render(); } }
+function loadSeed(){ if(confirm("Reset to the seed catalog? Your edits will be lost.")){ tools=seed(); render(); } }
+
+// ---- export ----
+function buildJSON(){
+  return {
+    version: 1,
+    generated_at: new Date().toISOString(),
+    tools: tools.map(tool=>{
+      const props={}; const required=[];
+      tool.params.forEach(pr=>{
+        if(!pr.name) return;
+        const schema={type:pr.type, description:pr.description||""};
+        const en=(pr.enumvals||"").split(",").map(s=>s.trim()).filter(Boolean);
+        if(en.length) schema.enum=en;
+        props[pr.name]=schema;
+        if(pr.required) required.push(pr.name);
+      });
+      return {
+        // canonical OpenAI function-calling schema (source of truth)
+        type:"function",
+        function:{
+          name: tool.name,
+          description: tool.description||"",
+          parameters:{ type:"object", properties:props, required }
+        },
+        // harness metadata (consumed by tooleval, ignored by model adapters)
+        meta:{ domain:tool.domain, read_only:!!tool.read_only, distractor:!!tool.distractor, held_out:!!tool.held_out }
+      };
+    })
+  };
+}
+function refreshOut(){
+  const json=buildJSON();
+  el("output").textContent=JSON.stringify(json,null,2);
+  const names=tools.map(x=>x.name);
+  const dupes=names.filter((n,i)=>n && names.indexOf(n)!==i);
+  const noname=tools.filter(x=>!x.name).length;
+  let msg=`${tools.length} tools`;
+  if(dupes.length) msg+=` · ⚠ duplicate names: ${[...new Set(dupes)].join(", ")}`;
+  if(noname) msg+=` · ⚠ ${noname} unnamed`;
+  el("validity").textContent=msg;
+}
+function copyJSON(){
+  const txt=JSON.stringify(buildJSON(),null,2);
+  navigator.clipboard.writeText(txt).then(()=>toast("Copied JSON to clipboard!"),
+    ()=>{ const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("Copied!"); });
+}
+function downloadJSON(){
+  const blob=new Blob([JSON.stringify(buildJSON(),null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="catalog.json"; a.click();
+}
+function toast(m){ const el2=el("toast"); el2.textContent=m; el2.classList.add("show"); setTimeout(()=>el2.classList.remove("show"),1600); }
+
+function escapeHtml(s){ return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function escapeAttr(s){ return (s||"").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+
+render();
+</script>
+</body>
+</html>
