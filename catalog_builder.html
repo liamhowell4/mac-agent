@@ -84,6 +84,16 @@
   .legend { color: var(--muted); font-size: 12px; display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
   .legend b { color: var(--warn); } .legend i { color: var(--accent); font-style: normal; }
   hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+  #gaps-section { margin-top: 6px; }
+  .gapdomain { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; background: var(--panel); }
+  .gaphead { display: flex; align-items: center; gap: 9px; cursor: pointer; text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--txt); margin: 0; }
+  .gaphead .domname { font-weight: 650; text-transform: capitalize; }
+  .gaplist { list-style: none; margin: 8px 0 0; padding: 0 0 0 26px; columns: 2; column-gap: 26px; }
+  @media (max-width: 720px){ .gaplist { columns: 1; } }
+  .gaplist li { margin: 4px 0; break-inside: avoid; }
+  .gaplist label { display: flex; gap: 8px; align-items: flex-start; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--txt); margin: 0; cursor: pointer; }
+  .gaplist code { color: var(--accent2); font-family: ui-monospace, Menlo, monospace; white-space: nowrap; }
+  .gapcount { color: var(--muted); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -124,34 +134,78 @@
     <label>Output preview (this is exactly what gets copied)</label>
     <pre id="output"></pre>
   </div>
+
+  <hr>
+
+  <div id="gaps-section">
+    <div class="toolbar" style="margin-bottom:6px">
+      <strong style="font-size:15px">Scope gaps — tools / domains NOT in the catalog yet</strong>
+      <div class="spacer" style="flex:1"></div>
+      <span class="gapcount" id="gapcount"></span>
+      <button class="ghost small" onclick="toggleAllGaps(true)">Select all</button>
+      <button class="ghost small" onclick="toggleAllGaps(false)">Clear</button>
+      <button class="good small" onclick="copyGaps()">⧉ Copy selected gaps</button>
+    </div>
+    <div class="small-muted" style="margin-bottom:12px">
+      Tick what's in scope for the eval, then Copy selected gaps and hand it back — I'll scaffold proper schemas.
+      Domains you already have list only their <em>missing</em> tools; <span class="badge d">⊘</span> = whole domain absent today.
+    </div>
+    <div id="gaps"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast">Copied!</div>
 
 <script>
-const DOMAINS = ["calendar","mail","messages","contacts","files","system","music","reminders","notes","maps","web","other"];
+const DOMAINS = ["calendar","mail","messages","contacts","files","system","music","web","browser","maps","apps","windows","clipboard","screen","automation","photos","weather","notifications","network","devices","calls","reminders","notes","shell","other"];
 const TYPES = ["string","integer","number","boolean","array","object"];
 
 // ---- seed catalog (edit/adjust freely) ----
 function seed() { return [
-  t("calendar.list_events","calendar","List calendar events, optionally filtered by date or text query.",false,false,false,[
+  // ---- calendar ----
+  t("calendar.list_events","calendar","List calendar events, optionally filtered by date or text query.",true,false,false,[
     p("date","string",false,"Day to list, e.g. '2026-06-08' or 'today'."),
     p("query","string",false,"Optional text to match in event titles.")]),
+  t("calendar.get_event","calendar","Get full details of a single calendar event by id.",true,false,false,[
+    p("event_id","string",true,"Id of the event.")]),
+  t("calendar.find_free_slots","calendar","Find free/busy availability — 'am I free at 3?'.",true,false,false,[
+    p("date","string",true,"Day to check."),
+    p("duration_minutes","integer",false,"Desired slot length."),
+    p("start_after","string",false,"Earliest time to consider."),
+    p("end_before","string",false,"Latest time to consider.")]),
+  t("calendar.list_calendars","calendar","List the available calendars.",true,false,false,[]),
   t("calendar.create_event","calendar","Create a new calendar event.",false,false,false,[
     p("title","string",true,"Event title."),
     p("start","string",true,"Start time, ISO or natural ('15:30')."),
     p("end","string",false,"End time."),
     p("attendees","array",false,"List of attendee emails.")]),
+  t("calendar.create_recurring_event","calendar","Create a recurring calendar event.",false,false,true,[
+    p("title","string",true,"Event title."),
+    p("start","string",true,"First occurrence start time."),
+    p("end","string",false,"First occurrence end time."),
+    pe("recurrence","string",true,"Recurrence frequency.",["daily","weekly","monthly","yearly"]),
+    p("until","string",false,"End date for the recurrence.")]),
   t("calendar.update_event","calendar","Update an existing calendar event by id.",false,false,false,[
     p("event_id","string",true,"Id of the event to update."),
     p("new_start","string",false,"New start time."),
     p("new_end","string",false,"New end time."),
     p("new_title","string",false,"New title.")]),
+  t("calendar.respond_to_invite","calendar","Respond to a calendar invitation.",false,false,false,[
+    p("event_id","string",true,"Id of the invite."),
+    pe("response","string",true,"Your response.",["accept","decline","tentative"])]),
   t("calendar.delete_event","calendar","Delete a calendar event by id.",false,false,false,[
     p("event_id","string",true,"Id of the event to delete.")]),
+
+  // ---- mail ----
   t("mail.search","mail","Search the mailbox for messages.",true,false,false,[
     p("query","string",true,"Search text."),
     p("folder","string",false,"Folder to search, e.g. 'inbox'.")]),
+  t("mail.read_message","mail","Read the full body of a specific email by id.",true,false,false,[
+    p("message_id","string",true,"Id of the message.")]),
+  t("mail.list_unread","mail","List unread messages.",true,false,false,[
+    p("folder","string",false,"Folder to scope to."),
+    p("limit","integer",false,"Max messages to return.")]),
+  t("mail.list_folders","mail","List mailboxes / folders.",true,false,false,[]),
   t("mail.send","mail","Send an email immediately.",false,false,false,[
     p("to","array",true,"Recipient email addresses."),
     p("subject","string",false,"Subject line."),
@@ -160,39 +214,232 @@ function seed() { return [
     p("to","array",false,"Recipient email addresses."),
     p("subject","string",false,"Subject line."),
     p("body","string",false,"Message body.")]),
+  t("mail.reply","mail","Reply to an email thread.",false,false,false,[
+    p("message_id","string",true,"Id of the message to reply to."),
+    p("body","string",true,"Reply body.")]),
+  t("mail.forward","mail","Forward an email to other recipients.",false,false,false,[
+    p("message_id","string",true,"Id of the message to forward."),
+    p("to","array",true,"Recipient email addresses."),
+    p("body","string",false,"Optional note to prepend.")]),
+  t("mail.mark_read","mail","Mark a message read or unread.",false,false,false,[
+    p("message_id","string",true,"Id of the message."),
+    p("read","boolean",false,"True to mark read, false for unread.")]),
+  t("mail.move_to_folder","mail","Move a message into a mailbox/folder.",false,false,false,[
+    p("message_id","string",true,"Id of the message."),
+    p("folder","string",true,"Destination folder.")]),
+  t("mail.delete","mail","Move an email to the trash.",false,false,false,[
+    p("message_id","string",true,"Id of the message to delete.")]),
+
+  // ---- messages ----
   t("messages.send","messages","Send an iMessage/SMS to a recipient.",false,false,false,[
     p("recipient","string",true,"Contact name, phone number, or email to send to."),
     p("body","string",true,"Message text.")]),
+  t("messages.read_thread","messages","Read the messages in a conversation.",true,false,false,[
+    p("contact","string",true,"Contact or thread to read."),
+    p("limit","integer",false,"Max messages to return.")]),
   t("messages.list_unread","messages","List unread iMessage/SMS conversations.",true,false,false,[
     p("limit","integer",false,"Max conversations to return.")]),
   t("messages.search","messages","Search message history by text or contact.",true,false,false,[
     p("query","string",true,"Search text."),
     p("contact","string",false,"Restrict to a specific contact.")]),
+  t("messages.reply","messages","Reply within an existing conversation.",false,false,false,[
+    p("contact","string",true,"Contact or thread to reply in."),
+    p("body","string",true,"Reply text.")]),
+  t("messages.send_attachment","messages","Send an image or file via Messages.",false,false,false,[
+    p("recipient","string",true,"Contact to send to."),
+    p("file_path","string",true,"Path to the file to attach."),
+    p("body","string",false,"Optional accompanying text.")]),
+  t("messages.react","messages","Add a tapback reaction to a message.",false,false,false,[
+    p("message_id","string",true,"Id of the message to react to."),
+    pe("reaction","string",true,"Tapback type.",["love","like","dislike","laugh","emphasize","question"])]),
+  t("messages.mark_read","messages","Mark a conversation as read.",false,false,false,[
+    p("contact","string",true,"Contact or thread to mark read.")]),
+
+  // ---- contacts ----
   t("contacts.find","contacts","Look up a contact by name.",true,false,false,[
     p("name","string",true,"Name to search for.")]),
+  t("contacts.get_details","contacts","Get the full contact card by id or name.",true,false,false,[
+    p("contact_id","string",true,"Id or name of the contact.")]),
+  t("contacts.list_groups","contacts","List contact groups.",true,false,false,[]),
   t("contacts.create","contacts","Create a new contact.",false,false,false,[
     p("name","string",true,"Full name."),
     p("email","string",false,"Email address."),
     p("phone","string",false,"Phone number.")]),
+  t("contacts.update","contacts","Edit an existing contact.",false,false,false,[
+    p("contact_id","string",true,"Id of the contact."),
+    p("name","string",false,"Updated name."),
+    p("email","string",false,"Updated email."),
+    p("phone","string",false,"Updated phone.")]),
+  t("contacts.delete","contacts","Delete a contact.",false,false,false,[
+    p("contact_id","string",true,"Id of the contact to delete.")]),
+
+  // ---- files ----
   t("files.search","files","Search files by name or content.",true,false,false,[
     p("query","string",true,"Search text."),
     p("path","string",false,"Directory to scope the search.")]),
+  t("files.list_dir","files","List the contents of a folder.",true,false,false,[
+    p("path","string",true,"Directory path.")]),
   t("files.read","files","Read the contents of a file.",true,false,false,[
     p("path","string",true,"Absolute path to the file.")]),
-  t("files.move","files","Move or rename a file.",false,false,false,[
+  t("files.get_info","files","Get a file's size, dates, and metadata.",true,false,false,[
+    p("path","string",true,"Path to the file.")]),
+  t("files.recent","files","List recently used files.",true,false,false,[
+    p("limit","integer",false,"Max files to return.")]),
+  t("files.storage_info","files","Report free disk space.",true,false,false,[
+    p("path","string",false,"Volume or path to check.")]),
+  t("files.create_folder","files","Create a new directory.",false,false,false,[
+    p("path","string",true,"Path of the folder to create.")]),
+  t("files.copy","files","Copy a file to a new location.",false,false,false,[
     p("src","string",true,"Source path."),
     p("dest","string",true,"Destination path.")]),
-  t("files.delete","files","Delete a file.",false,false,true,[
+  t("files.move","files","Move a file to a new location.",false,false,false,[
+    p("src","string",true,"Source path."),
+    p("dest","string",true,"Destination path.")]),
+  t("files.rename","files","Rename a file in place.",false,false,false,[
+    p("path","string",true,"Current path."),
+    p("new_name","string",true,"New file name.")]),
+  t("files.open","files","Open a file in its default app.",false,false,false,[
+    p("path","string",true,"Path to the file.")]),
+  t("files.compress","files","Compress files into a zip archive (or unzip one).",false,false,true,[
+    p("paths","array",true,"Files/folders to compress."),
+    p("dest","string",true,"Destination archive path.")]),
+  t("files.trash","files","Move a file to the Trash (recoverable).",false,false,false,[
+    p("path","string",true,"Path to move to Trash.")]),
+  t("files.delete","files","Permanently delete a file.",false,false,false,[
     p("path","string",true,"Path to delete.")]),
+
+  // ---- system ----
+  t("system.get_battery","system","Get current battery percentage and charging state.",true,false,false,[]),
+  t("system.get_volume","system","Read the current output volume.",true,false,false,[]),
   t("system.set_volume","system","Set the system output volume.",false,false,false,[
     pe("level","integer",true,"Volume 0–100.",[])]),
+  t("system.set_brightness","system","Set display brightness — 'dim to 40%'.",false,false,false,[
+    p("level","integer",true,"Brightness 0–100.")]),
+  t("system.toggle_dark_mode","system","Switch between light and dark appearance.",false,false,false,[
+    p("enabled","boolean",true,"True for dark mode.")]),
   t("system.toggle_dnd","system","Turn Do Not Disturb on or off.",false,false,false,[
     p("enabled","boolean",true,"True to enable DND.")]),
-  t("system.get_battery","system","Get current battery percentage and charging state.",true,false,false,[]),
-  // distractors (look relevant, usually wrong choice)
-  t("reminders.create","reminders","Create a reminder/to-do item.",false,true,false,[
+  t("system.set_focus_mode","system","Set the active Focus mode.",false,false,false,[
+    pe("mode","string",true,"Focus to activate.",["work","personal","sleep","do_not_disturb","off"])]),
+  t("system.toggle_wifi","system","Turn Wi-Fi on or off.",false,false,false,[
+    p("enabled","boolean",true,"True to enable Wi-Fi.")]),
+  t("system.toggle_bluetooth","system","Turn Bluetooth on or off.",false,false,false,[
+    p("enabled","boolean",true,"True to enable Bluetooth.")]),
+  t("system.caffeinate","system","Keep the Mac awake / prevent sleep.",false,false,false,[
+    p("enabled","boolean",true,"True to keep awake."),
+    p("duration_minutes","integer",false,"Optional auto-expire after N minutes.")]),
+  t("system.lock_screen","system","Lock the screen.",false,false,false,[]),
+  t("system.sleep","system","Put the Mac to sleep.",false,false,false,[]),
+  t("system.restart_or_shutdown","system","Restart or shut down the Mac (destructive).",false,false,false,[
+    pe("action","string",true,"What to do.",["restart","shutdown"]),
+    p("confirm","boolean",false,"Must be true to proceed.")]),
+
+  // ---- music ----
+  t("music.now_playing","music","Get the currently playing track.",true,false,false,[]),
+  t("music.search","music","Search for a song, artist, or album.",true,false,false,[
+    p("query","string",true,"Search text.")]),
+  t("music.play","music","Play or resume playback.",false,false,false,[
+    p("query","string",false,"Optional song/artist to play.")]),
+  t("music.pause","music","Pause playback.",false,false,false,[]),
+  t("music.next_track","music","Skip to the next track.",false,false,false,[]),
+  t("music.previous_track","music","Go to the previous track.",false,false,false,[]),
+  t("music.play_playlist","music","Play a named playlist or mood.",false,false,false,[
+    p("name","string",true,"Playlist or mood name.")]),
+  t("music.play_podcast","music","Play a podcast episode.",false,false,true,[
+    p("query","string",true,"Show or episode to play.")]),
+  t("music.set_volume","music","Set the media playback volume.",false,false,false,[
+    p("level","integer",true,"Volume 0–100.")]),
+
+  // ---- web ----
+  t("web.search","web","Search the web for current information (use instead of guessing).",true,false,false,[
+    p("query","string",true,"Search query.")]),
+  t("web.fetch_url","web","Fetch and read the contents of a web page.",true,false,false,[
+    p("url","string",true,"URL to fetch.")]),
+  t("web.open_url","web","Open a URL in the default browser.",false,false,false,[
+    p("url","string",true,"URL to open.")]),
+
+  // ---- apps ----
+  t("apps.list_running","apps","List currently running applications.",true,false,false,[]),
+  t("apps.open","apps","Launch an application.",false,false,false,[
+    p("name","string",true,"App name to open.")]),
+  t("apps.quit","apps","Quit an application.",false,false,false,[
+    p("name","string",true,"App name to quit.")]),
+  t("apps.switch_to","apps","Bring an application to the front.",false,false,false,[
+    p("name","string",true,"App name to focus.")]),
+
+  // ---- clipboard ----
+  t("clipboard.get","clipboard","Read the current clipboard contents.",true,false,false,[]),
+  t("clipboard.history","clipboard","List recent clipboard items.",true,false,false,[
+    p("limit","integer",false,"Max items to return.")]),
+  t("clipboard.set","clipboard","Write text to the clipboard.",false,false,false,[
+    p("text","string",true,"Text to copy.")]),
+
+  // ---- screen ----
+  t("screen.ocr","screen","Read text currently visible on screen.",true,false,false,[]),
+  t("screen.screenshot","screen","Capture the whole screen.",false,false,false,[
+    p("save_path","string",false,"Where to save the image.")]),
+  t("screen.capture_region","screen","Capture a selected region of the screen.",false,false,false,[
+    p("x","integer",true,"Left coordinate."),
+    p("y","integer",true,"Top coordinate."),
+    p("width","integer",true,"Region width."),
+    p("height","integer",true,"Region height."),
+    p("save_path","string",false,"Where to save the image.")]),
+  t("screen.start_recording","screen","Start a screen recording.",false,false,false,[
+    p("save_path","string",false,"Where to save the recording.")]),
+
+  // ---- weather ----
+  t("weather.current","weather","Get current weather conditions.",true,false,false,[
+    p("location","string",false,"Location (defaults to current).")]),
+  t("weather.forecast","weather","Get the upcoming weather forecast.",true,false,false,[
+    p("location","string",false,"Location (defaults to current)."),
+    p("days","integer",false,"Number of days to forecast.")]),
+
+  // ---- network ----
+  t("network.wifi_status","network","Get the current Wi-Fi connection status.",true,false,false,[]),
+  t("network.list_wifi","network","List available Wi-Fi networks.",true,false,false,[]),
+  t("network.get_ip","network","Get the local or public IP address.",true,false,false,[
+    pe("scope","string",false,"Which IP to return.",["local","public"])]),
+  t("network.connect_wifi","network","Join a Wi-Fi network.",false,false,false,[
+    p("ssid","string",true,"Network name."),
+    p("password","string",false,"Network password.")]),
+
+  // ---- devices ----
+  t("devices.list_bluetooth","devices","List paired Bluetooth devices.",true,false,false,[]),
+  t("devices.connect_bluetooth","devices","Connect a Bluetooth device.",false,false,false,[
+    p("device","string",true,"Device name to connect.")]),
+  t("devices.airdrop","devices","AirDrop a file to a nearby device.",false,false,false,[
+    p("file_path","string",true,"Path to the file to send."),
+    p("recipient","string",true,"Device or contact to send to.")]),
+
+  // ---- calls ----
+  t("calls.facetime","calls","Start a FaceTime call.",false,false,false,[
+    p("contact","string",true,"Contact name or number.")]),
+  t("calls.phone","calls","Place a phone call to a contact.",false,false,false,[
+    p("contact","string",true,"Contact name or number.")]),
+
+  // ---- reminders ----
+  t("reminders.list","reminders","List reminders.",true,false,false,[
+    p("list_name","string",false,"Reminder list to read."),
+    p("include_completed","boolean",false,"Include completed items.")]),
+  t("reminders.list_lists","reminders","List the available reminder lists.",true,false,false,[]),
+  t("reminders.create","reminders","Create a reminder/to-do item.",false,false,false,[
     p("text","string",true,"Reminder text."),
-    p("due","string",false,"Due date/time.")]),
+    p("due","string",false,"Due date/time."),
+    p("list_name","string",false,"List to add it to.")]),
+  t("reminders.complete","reminders","Mark a reminder as done.",false,false,false,[
+    p("reminder_id","string",true,"Id of the reminder.")]),
+  t("reminders.update","reminders","Edit an existing reminder.",false,false,false,[
+    p("reminder_id","string",true,"Id of the reminder."),
+    p("text","string",false,"Updated text."),
+    p("due","string",false,"Updated due date/time.")]),
+  t("reminders.delete","reminders","Delete a reminder.",false,false,false,[
+    p("reminder_id","string",true,"Id of the reminder to delete.")]),
+
+  // ---- shell ----
+  t("shell.run_command","shell","Execute an arbitrary terminal command (powerful and dangerous).",false,false,true,[
+    p("command","string",true,"Shell command to run.")]),
+
+  // ---- notes (kept minimal — a plausible distractor vs reminders/mail) ----
   t("notes.create","notes","Create a note in the Notes app.",false,true,false,[
     p("title","string",false,"Note title."),
     p("body","string",false,"Note body.")]),
@@ -343,7 +590,103 @@ function toast(m){ const el2=el("toast"); el2.textContent=m; el2.classList.add("
 function escapeHtml(s){ return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 function escapeAttr(s){ return (s||"").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 
+// ---- scope-gap checklist (tools/domains NOT in the seed catalog) ----
+// Remaining gaps after the 2026-06-08 selection. Selected domains/tools were folded
+// into seed() above and removed from this list.
+const GAPS = [
+  {domain:"notes", status:"partial", tools:[
+    {n:"notes.list", d:"list notes (currently only create exists)"},
+    {n:"notes.read", d:"read a note's body"},
+    {n:"notes.search", d:"search notes by text"},
+    {n:"notes.append", d:"add content to an existing note"},
+    {n:"notes.update", d:"edit a note"},
+    {n:"notes.delete", d:"delete a note"},
+  ]},
+  {domain:"browser", status:"missing", tools:[
+    {n:"browser.open_tab", d:"open a new tab to a URL"},
+    {n:"browser.list_tabs", d:"list open tabs"},
+    {n:"browser.get_current_url", d:"the active tab's URL"},
+    {n:"browser.read_page", d:"extract the current page's text"},
+    {n:"browser.search_history", d:"search browsing history"},
+    {n:"browser.bookmark", d:"bookmark the current page"},
+    {n:"browser.close_tab", d:"close a tab"},
+  ]},
+  {domain:"maps", status:"missing", tools:[
+    {n:"maps.search_places", d:"find a place / business nearby"},
+    {n:"maps.directions", d:"route between two points"},
+    {n:"maps.current_location", d:"where am I"},
+    {n:"maps.eta", d:"travel time to a destination"},
+  ]},
+  {domain:"windows", status:"missing", tools:[
+    {n:"windows.list", d:"list open windows"},
+    {n:"windows.focus", d:"focus a specific window"},
+    {n:"windows.minimize", d:"minimize a window"},
+    {n:"windows.fullscreen", d:"toggle fullscreen"},
+    {n:"windows.arrange", d:"tile / snap windows"},
+  ]},
+  {domain:"automation", status:"missing", tools:[
+    {n:"automation.run_shortcut", d:"run a Shortcuts.app shortcut"},
+    {n:"automation.list_shortcuts", d:"enumerate available shortcuts"},
+    {n:"automation.run_applescript", d:"execute AppleScript (powerful / risky)"},
+  ]},
+  {domain:"photos", status:"missing", tools:[
+    {n:"photos.search", d:"search photos by content / date"},
+    {n:"photos.recent", d:"recently taken photos"},
+    {n:"photos.create_album", d:"make a new album"},
+    {n:"photos.share", d:"share a photo"},
+  ]},
+  {domain:"notifications", status:"missing", tools:[
+    {n:"notifications.list", d:"list recent notifications"},
+    {n:"notifications.clear", d:"dismiss notifications"},
+    {n:"notifications.post", d:"post a local notification"},
+  ]},
+];
+
+function renderGaps(){
+  const root = el("gaps"); root.innerHTML = "";
+  GAPS.forEach((g,gi)=>{
+    const block = document.createElement("div");
+    block.className = "gapdomain";
+    const badge = g.status==="missing"
+      ? '<span class="badge d">⊘ whole domain missing</span>'
+      : `<span class="badge">partial · ${g.tools.length} missing</span>`;
+    block.innerHTML = `
+      <label class="gaphead"><input type="checkbox" data-gd="${gi}" onchange="toggleDomain(${gi},this.checked)">
+        <span class="domname">${g.domain}</span> ${badge}</label>
+      <ul class="gaplist">${g.tools.map((t,ti)=>`
+        <li><label><input type="checkbox" data-g="${gi}" data-t="${ti}" onchange="updateGapCount()"> <code>${t.n}</code> — ${escapeHtml(t.d)}</label></li>`).join("")}</ul>`;
+    root.appendChild(block);
+  });
+  updateGapCount();
+}
+function gapBoxes(){ return [...document.querySelectorAll('#gaps input[data-g]')]; }
+function toggleDomain(gi,checked){ gapBoxes().filter(b=>+b.dataset.g===gi).forEach(b=>b.checked=checked); updateGapCount(); }
+function toggleAllGaps(checked){
+  gapBoxes().forEach(b=>b.checked=checked);
+  [...document.querySelectorAll('#gaps input[data-gd]')].forEach(b=>b.checked=checked);
+  updateGapCount();
+}
+function updateGapCount(){
+  const n = gapBoxes().filter(b=>b.checked).length;
+  const total = gapBoxes().length;
+  el("gapcount").textContent = `${n} of ${total} selected`;
+}
+function copyGaps(){
+  const picked = {};
+  gapBoxes().filter(b=>b.checked).forEach(b=>{
+    const g=GAPS[+b.dataset.g], t=g.tools[+b.dataset.t];
+    (picked[g.domain] ||= []).push(t);
+  });
+  const domains = Object.keys(picked);
+  if(!domains.length){ toast("Nothing selected"); return; }
+  let out = "# Tools to add to the catalog (selected scope gaps)\n\n";
+  domains.forEach(d=>{ out += `## ${d}\n`; picked[d].forEach(t=>{ out += `- ${t.n} — ${t.d}\n`; }); out += "\n"; });
+  navigator.clipboard.writeText(out).then(()=>toast(`Copied ${gapBoxes().filter(b=>b.checked).length} tools`),
+    ()=>{ const ta=document.createElement("textarea"); ta.value=out; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("Copied!"); });
+}
+
 render();
+renderGaps();
 </script>
 </body>
 </html>
