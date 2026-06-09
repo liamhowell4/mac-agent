@@ -43,6 +43,28 @@ def assert_ollama_version(host: str = "http://localhost:11434") -> str:
     return version
 
 
+def list_loaded(host: str = "http://localhost:11434") -> list[str]:
+    """Names of models currently resident in Ollama (via /api/ps)."""
+    try:
+        resp = httpx.get(f"{host.rstrip('/')}/api/ps", timeout=10.0)
+        resp.raise_for_status()
+        return [m["name"] for m in resp.json().get("models", [])]
+    except httpx.HTTPError:
+        return []
+
+
+def unload_all(host: str = "http://localhost:11434") -> list[str]:
+    """Evict every loaded model (including the embed model) — full cleanup after a run."""
+    host = host.rstrip("/")
+    names = list_loaded(host)
+    for name in names:
+        try:
+            httpx.post(f"{host}/api/generate", json={"model": name, "keep_alive": 0}, timeout=30.0)
+        except httpx.HTTPError:
+            pass
+    return names
+
+
 class OllamaProvider:
     """Completes chat turns via Ollama's native tool-calling endpoint."""
 

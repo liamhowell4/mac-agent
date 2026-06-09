@@ -13,7 +13,12 @@ from .config import build_provider, build_retriever, expand_cells, load_config, 
 from .eval.metrics import aggregate
 from .eval.runner import Runner
 from .eval.task import load_tasks
-from .providers.ollama import OllamaProvider, OllamaVersionError, assert_ollama_version
+from .providers.ollama import (
+    OllamaProvider,
+    OllamaVersionError,
+    assert_ollama_version,
+    unload_all,
+)
 from .retrieval.passthrough import PassthroughRetriever
 from .tools.catalog import load_catalog
 
@@ -52,16 +57,21 @@ def cmd_run(args: argparse.Namespace) -> int:
     raw_fp = out_dir / "raw.jsonl"
 
     records = []
-    with raw_fp.open("w") as raw:
-        for i, task in enumerate(tasks, 1):
-            rec = runner.run_task(task)
-            records.append(rec)
-            row = {"cell": asdict(runner.cell), **asdict(rec)}
-            raw.write(json.dumps(row) + "\n")
-            flag = "·cache" if rec.cached else ""
-            mark = "PASS" if rec.grade.passed else "FAIL"
-            print(f"  [{i:>2}/{len(tasks)}] {task.id:<14} {task.tier:<9} {mark} "
-                  f"({rec.turns}t, {rec.latency_s:.1f}s){flag}")
+    try:
+        with raw_fp.open("w") as raw:
+            for i, task in enumerate(tasks, 1):
+                rec = runner.run_task(task)
+                records.append(rec)
+                row = {"cell": asdict(runner.cell), **asdict(rec)}
+                raw.write(json.dumps(row) + "\n")
+                flag = "·cache" if rec.cached else ""
+                mark = "PASS" if rec.grade.passed else "FAIL"
+                print(f"  [{i:>2}/{len(tasks)}] {task.id:<14} {task.tier:<9} {mark} "
+                      f"({rec.turns}t, {rec.latency_s:.1f}s){flag}")
+    finally:
+        freed = unload_all(args.host)  # take down ALL models when done
+        if freed:
+            print(f"[cleanup] unloaded: {', '.join(freed)}")
 
     metrics = aggregate(records)
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
@@ -119,34 +129,37 @@ def cmd_matrix(args: argparse.Namespace) -> int:
 
     cells_out = []
     prev_provider = None  # unload models when switching, so they don't co-reside on 16GB
-    with raw_fp.open("w") as raw:
-        for ci, (mspec, rspec, decoding, _prompt) in enumerate(combos, 1):
-            provider = build_provider(mspec, args.host, seed)
-            if prev_provider is not None and prev_provider.name != provider.name:
-                print(f"   (unloading {prev_provider.name})")
-                prev_provider.unload()
-            prev_provider = provider
-            retriever, k = build_retriever(rspec, args.host)
-            constrained = decoding == "constrained"
-            runner = Runner(
-                provider, retriever, catalog,
-                seed=seed, k=k or args.k, constrained=constrained,
-                cache_dir=None if args.no_cache else Path("results/cache"),
-            )
-            label = runner.cell.label()
-            print(f"\n[cell {ci}/{len(combos)}] {label}")
-            records = []
-            for task in tasks:
-                rec = runner.run_task(task)
-                records.append(rec)
-                raw.write(json.dumps({"cell": asdict(runner.cell), **asdict(rec)}) + "\n")
-            metrics = aggregate(records)
-            cells_out.append({"cell": asdict(runner.cell), "metrics": metrics})
-            o = metrics["overall"]
-            print(f"   pass={o['task_pass_rate']}  tool_sel={o['tool_selection_accuracy']}  "
-                  f"overcall={o['overcall_rate']}  recall={o['retrieval_recall']}")
-    if prev_provider is not None:
-        prev_provider.unload()  # free the last model at the end
+    try:
+        with raw_fp.open("w") as raw:
+            for ci, (mspec, rspec, decoding, _prompt) in enumerate(combos, 1):
+                provider = build_provider(mspec, args.host, seed)
+                if prev_provider is not None and prev_provider.name != provider.name:
+                    print(f"   (unloading {prev_provider.name})")
+                    prev_provider.unload()
+                prev_provider = provider
+                retriever, k = build_retriever(rspec, args.host)
+                constrained = decoding == "constrained"
+                runner = Runner(
+                    provider, retriever, catalog,
+                    seed=seed, k=k or args.k, constrained=constrained,
+                    cache_dir=None if args.no_cache else Path("results/cache"),
+                )
+                label = runner.cell.label()
+                print(f"\n[cell {ci}/{len(combos)}] {label}")
+                records = []
+                for task in tasks:
+                    rec = runner.run_task(task)
+                    records.append(rec)
+                    raw.write(json.dumps({"cell": asdict(runner.cell), **asdict(rec)}) + "\n")
+                metrics = aggregate(records)
+                cells_out.append({"cell": asdict(runner.cell), "metrics": metrics})
+                o = metrics["overall"]
+                print(f"   pass={o['task_pass_rate']}  tool_sel={o['tool_selection_accuracy']}  "
+                      f"overcall={o['overcall_rate']}  recall={o['retrieval_recall']}")
+    finally:
+        freed = unload_all(args.host)  # take down ALL models (incl. embed) when done
+        if freed:
+            print(f"\n[cleanup] unloaded: {', '.join(freed)}")
 
     (out_dir / "matrix.json").write_text(json.dumps(cells_out, indent=2))
     _print_matrix(cells_out)
