@@ -1,5 +1,10 @@
 from tooleval.config import expand_cells
-from tooleval.providers.ollama import _constrained_wire, _parse_version, _render_tools
+from tooleval.providers.ollama import (
+    _constrained_wire,
+    _parse_constrained_decision,
+    _parse_version,
+    _render_tools,
+)
 from tooleval.types import Msg, ToolCall, ToolSchema
 
 VOL = ToolSchema(
@@ -36,6 +41,24 @@ def test_parse_version_ordering():
 def test_render_tools_marks_required():
     text = _render_tools([VOL])
     assert "system.set_volume(level*)" in text
+
+
+def test_parse_constrained_decision_handles_junk():
+    # the bug that crashed cell 8: model returned a bare int under `format`
+    assert _parse_constrained_decision("8") == ([], "8")
+    assert _parse_constrained_decision("not json") == ([], "not json")
+    assert _parse_constrained_decision('[1,2,3]') == ([], "[1,2,3]")
+    # abstain: tool_name null → no calls, text returned
+    calls, text = _parse_constrained_decision('{"tool_name": null, "response_text": "hi"}')
+    assert calls == [] and text == "hi"
+    # valid call
+    calls, text = _parse_constrained_decision(
+        '{"tool_name": "system.set_volume", "arguments": {"level": 30}}')
+    assert len(calls) == 1 and calls[0].name == "system.set_volume"
+    assert calls[0].arguments == {"level": 30}
+    # call with non-dict arguments → coerced to empty dict (no crash)
+    calls, _ = _parse_constrained_decision('{"tool_name": "x", "arguments": 5}')
+    assert calls[0].arguments == {}
 
 
 def test_constrained_wire_injects_catalog_and_flattens():

@@ -148,18 +148,10 @@ class OllamaProvider:
         }
         data = self._post(payload)
         content = data.get("message", {}).get("content") or "{}"
-        try:
-            decision = json.loads(content)
-        except json.JSONDecodeError:
-            decision = {}
-        tool_name = decision.get("tool_name")
-        calls = []
-        text = decision.get("response_text")
-        if tool_name:
-            calls = [ToolCall(name=tool_name, arguments=decision.get("arguments") or {})]
+        calls, text = _parse_constrained_decision(content)
         return Completion(
             tool_calls=calls,
-            text=text or None,
+            text=text,
             latency_s=data["_latency"],
             prompt_tokens=int(data.get("prompt_eval_count", 0) or 0),
             completion_tokens=int(data.get("eval_count", 0) or 0),
@@ -185,6 +177,27 @@ class OllamaProvider:
         data = resp.json()
         data["_latency"] = latency
         return data
+
+
+def _parse_constrained_decision(content: str) -> tuple[list[ToolCall], str | None]:
+    """Parse a constrained-mode JSON decision into (tool_calls, text). Robust to junk output.
+
+    The model is supposed to emit {tool_name, arguments, response_text}, but under `format`
+    it sometimes returns a bare int/string/list — those are treated as a no-call text reply.
+    """
+    try:
+        decision = json.loads(content)
+    except json.JSONDecodeError:
+        return [], content or None
+    if not isinstance(decision, dict):
+        return [], content or None
+    tool_name = decision.get("tool_name")
+    text = decision.get("response_text")
+    if tool_name:
+        args = decision.get("arguments")
+        args = args if isinstance(args, dict) else {}
+        return [ToolCall(name=str(tool_name), arguments=args)], None
+    return [], text or None
 
 
 def _render_tools(tools: list[ToolSchema]) -> str:
