@@ -10,6 +10,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .config import build_provider, build_retriever, expand_cells, load_config, load_dotenv
+from .eval.judge import judge_rows
 from .eval.metrics import aggregate
 from .eval.runner import Runner
 from .eval.task import load_tasks
@@ -19,6 +20,8 @@ from .providers.ollama import (
     assert_ollama_version,
     unload_all,
 )
+from .providers.openrouter import OpenRouterJudge
+from .report.render import build_report
 from .retrieval.passthrough import PassthroughRetriever
 from .tools.catalog import load_catalog
 
@@ -181,6 +184,49 @@ def _print_matrix(cells_out: list[dict]) -> None:
               f"{f(o['overcall_rate']):>10}{f(o['retrieval_recall']):>9}")
 
 
+def cmd_report(args: argparse.Namespace) -> int:
+    load_dotenv()
+    if args.results:
+        results_dir = Path(args.results)
+    else:
+        dirs = sorted(p for p in Path("results").glob("2026*") if (p / "raw.jsonl").exists())
+        if not dirs:
+            print("No results dirs found.", file=sys.stderr)
+            return 1
+        results_dir = dirs[-1]
+
+    raw_fp = results_dir / "raw.jsonl"
+    rows = [json.loads(line) for line in raw_fp.read_text().splitlines() if line.strip()]
+    tasks = load_tasks(args.tasks)
+    tasks_by_id = {t.id: {"query": t.query, "notes": t.notes} for t in tasks}
+
+    if not args.no_judge:
+        judge = OpenRouterJudge()
+        if judge.api_key and judge.model:
+            summary = judge_rows(rows, tasks_by_id, judge)
+            raw_fp.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+            print(f"[judge] {judge.model}: {summary}")
+        else:
+            print("[judge] skipped — set OPENROUTER_API_KEY/OPENROUTER_MODEL in .env")
+
+    meta = {
+        "subtitle": f"{results_dir.name} · {len(rows)} runs · "
+                    f"models/retrieval/decoding matrix on a 103-tool macOS catalog",
+        "generated": f"results dir: {results_dir}",
+    }
+    recommendations = (args.recommendations_file and
+                       Path(args.recommendations_file).read_text()) or _DEFAULT_RECS
+    md_fp, html_fp = build_report(
+        results_dir, meta, recommendations=recommendations,
+        out_html=args.out_html or ".claude/artifacts/report-tooleval.html",
+    )
+    print(f"[report] wrote {md_fp} and {html_fp}")
+    return 0
+
+
+_DEFAULT_RECS = "Recommendations pending analysis of the completed run."
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="tooleval")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -205,6 +251,14 @@ def main(argv: list[str] | None = None) -> int:
     mat.add_argument("--out", default="results")
     mat.add_argument("--no-cache", action="store_true")
     mat.set_defaults(func=cmd_matrix)
+
+    rep = sub.add_parser("report", help="judge clarify tasks + render markdown/HTML report (M4)")
+    rep.add_argument("--results", default=None, help="results dir (default: latest)")
+    rep.add_argument("--tasks", default="data/tasks/*.json")
+    rep.add_argument("--no-judge", action="store_true")
+    rep.add_argument("--out-html", default=None)
+    rep.add_argument("--recommendations-file", default=None)
+    rep.set_defaults(func=cmd_report)
 
     args = parser.parse_args(argv)
     return args.func(args)
