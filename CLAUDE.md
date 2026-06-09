@@ -16,6 +16,10 @@ layout (§5), abstractions (§6), dataset (§7), grading (§8), metrics (§9), c
 milestones (§12). Its addendum lists the resolved decisions; read it before building. A visual,
 step-by-step roadmap lives at `.claude/artifacts/plan-tooleval.html` (open in a browser).
 
+**Resuming work?** Read `docs/handoff-2026-06-09.md` first — it has the 528-run results, the
+caveats, and the prioritized **next wave** (test the reasoning-distilled qwen via the MLX provider,
+e5 re-run, restraint-prompt variant, constrained-decoding fix).
+
 ## Current state (important)
 
 **M1–M4 code complete** (26 tests pass, ruff clean). Commands: `tooleval run` (single cell),
