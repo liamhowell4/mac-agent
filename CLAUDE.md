@@ -18,21 +18,28 @@ step-by-step roadmap lives at `.claude/artifacts/plan-tooleval.html` (open in a 
 
 ## Current state (important)
 
-**M1 done, M2 implemented** (validated by smoke + tests; full-matrix run produces the real
-numbers). The harness lives under `src/tooleval/` and runs via `tooleval run` (single cell) and
-`tooleval matrix --config config/run.example.yaml` (full cell matrix). 15 tests pass; ruff clean.
+**M1–M4 code complete** (26 tests pass, ruff clean). Commands: `tooleval run` (single cell),
+`tooleval matrix --config config/run.example.yaml` (full matrix), `tooleval report` (judge + render).
 
 - **M1:** catalog loader, Ollama provider (+ version assert), passthrough retriever, deterministic
   simulator, agentic-loop runner (turn cap 6), programmatic grader, `(cell,task)` cache, CLI.
-- **M2:** embedding retriever (`nomic-embed-text`, cosine top-k, `retrieval_recall@k`),
-  constrained-decoding toggle, config-driven matrix runner, Gemma path. Next: M3 (chains +
-  ambiguous + judge), then M4 (report, MLX provider, LiteRT-LM provider, tests).
+- **M2:** embedding retriever (cosine top-k, `retrieval_recall@k`, per-model query/doc prefixes,
+  e5 default), args-only constrained-decoding toggle, config-driven matrix runner, Gemma path.
+- **M3:** `chain` + `ambiguous` tiers, ordered-chain grading, OpenRouter LLM-judge pass
+  (`eval/judge.py`, cached verdicts, falls back to programmatic on judge error).
+- **M4:** `report/render.py` (markdown + HTML scorecard → `.claude/artifacts/report-tooleval.html`),
+  **MLX provider** (`providers/mlx.py`, lazy `mlx_lm`, raw-text tool parsing for the HF models),
+  **LiteRT-LM scaffold** (`providers/litert.py`, for Gemma deployment fidelity), adapter+grader tests.
 
-Models: use the **MLX-in-Ollama tags** the user has — `qwen3.5:4b-mlx` (baseline), `gemma4:e4b-mlx`
-(both tool-call correctly via `/api/chat`). `qwen3.5:0.8b` collapses under passthrough (good demo,
-not representative). The catalog holds **103 tools across 24 domains**; `passthrough` offers all
-103 (genuinely breaks small models — the point), `notes.create` is the lone distractor, a few tools
-are `held_out` for fine-tune-generalization.
+Robustness baked in from hard-won runs: `num_ctx=16384` (Gemma swapped a 16GB Mac at 17.7GB with
+the full default window), `num_predict=2048` (Gemma ran away in `format` mode and hung), per-task
+error resilience (one bad task can't abort the matrix), and `unload_all` after every run (frees ALL
+models incl. embed). `qwen3.5:4b-mlx` / `gemma4:e4b-mlx` are the baseline tags; `qwen3.5:0.8b`
+collapses under passthrough (good demo, not representative).
+
+To run the HF MLX models (`mlx-community/Qwen3.5-4B-OptiQ-4bit`,
+`Jackrong/...Claude-4.6-Opus-Reasoning-Distilled-v2-8bit`): `uv pip install mlx_lm`, add them as
+`{provider: mlx, model: ...}` cells (needs a small `build_provider` branch for the mlx kind).
 
 The catalog now holds **103 tools across 24 domains** (calendar, mail, messages, contacts, files,
 system, music, web, apps, clipboard, screen, weather, network, devices, calls, reminders, shell,
