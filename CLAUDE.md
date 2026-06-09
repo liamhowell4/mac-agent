@@ -18,11 +18,21 @@ step-by-step roadmap lives at `.claude/artifacts/plan-tooleval.html` (open in a 
 
 ## Current state (important)
 
-The harness is **not built yet**. Real artifacts so far: `catalog_builder.html`, `CLAUDE.md`,
-`docs/build-brief.md`, and `.claude/artifacts/plan-tooleval.html`. Do NOT assume the
-`src/tooleval/` tree, `pyproject.toml`, or any commands below exist — they are the *target*, not
-the present. M1 (skeleton + single/negative MVP) is the next implementation step, pending the
-user's greenlight; the user is treating this as planning-first.
+**M1 done, M2 implemented** (validated by smoke + tests; full-matrix run produces the real
+numbers). The harness lives under `src/tooleval/` and runs via `tooleval run` (single cell) and
+`tooleval matrix --config config/run.example.yaml` (full cell matrix). 15 tests pass; ruff clean.
+
+- **M1:** catalog loader, Ollama provider (+ version assert), passthrough retriever, deterministic
+  simulator, agentic-loop runner (turn cap 6), programmatic grader, `(cell,task)` cache, CLI.
+- **M2:** embedding retriever (`nomic-embed-text`, cosine top-k, `retrieval_recall@k`),
+  constrained-decoding toggle, config-driven matrix runner, Gemma path. Next: M3 (chains +
+  ambiguous + judge), then M4 (report, MLX provider, LiteRT-LM provider, tests).
+
+Models: use the **MLX-in-Ollama tags** the user has — `qwen3.5:4b-mlx` (baseline), `gemma4:e4b-mlx`
+(both tool-call correctly via `/api/chat`). `qwen3.5:0.8b` collapses under passthrough (good demo,
+not representative). The catalog holds **103 tools across 24 domains**; `passthrough` offers all
+103 (genuinely breaks small models — the point), `notes.create` is the lone distractor, a few tools
+are `held_out` for fine-tune-generalization.
 
 The catalog now holds **103 tools across 24 domains** (calendar, mail, messages, contacts, files,
 system, music, web, apps, clipboard, screen, weather, network, devices, calls, reminders, shell,
@@ -49,7 +59,20 @@ adapters ignore. A browser reload resets the form to `seed()` — copy unsaved J
   `list_events` first) — require multi-turn state.
 - **Constrained decoding constrains *arguments only*, never forces a call.** The model must always
   be able to abstain, or the `negative`/`ambiguous` tiers become meaningless (guaranteed 100%
-  over-call) under constrained decoding.
+  over-call) under constrained decoding. *Ollama implementation:* a structured-output JSON decision
+  (`format` schema) — `tool_name ∈ offered ∪ {null}` + `arguments` object + `response_text`; tools
+  are described in-prompt (not via the tools API) in this mode. Tool-name hallucination is
+  impossible; per-tool argument *typing* is checked by the grader, not the grammar (a tighter
+  per-tool grammar can come with the MLX provider in M4).
+- **Model unloading on 16GB.** The matrix runner unloads a model (`keep_alive=0`) when switching to
+  a different model and at the end, so qwen + gemma never co-reside. Cells are grouped by model, so
+  each loads once. `nomic-embed-text` stays resident during embedding cells (it embeds each query).
+- **MLX + LiteRT-LM are M4 providers** (raw-text path: in-prompt tool format + output parsing).
+  LiteRT-LM for Gemma 4 is added **for deployment fidelity**, not speed (MTP helps long outputs;
+  tool calls are short) — eval the runtime you'll ship. The two HF MLX models go here too:
+  `mlx-community/Qwen3.5-4B-OptiQ-4bit` (alt clean baseline) and
+  `Jackrong/...Claude-4.6-Opus-Reasoning-Distilled-v2-8bit` (an *extra* cell — already a fine-tune,
+  so a "does reasoning-distillation already solve tool-calling?" comparison, not a baseline).
 - **Tier is a reporting label; `expect` drives grading.** What makes a task `chain` is multiple
   *primary/mutating* calls, not the presence of a read-only lookup turn.
 - **Judge = cloud via OpenRouter (revised 2026-06-08).** The judge only scores the *eval*, never

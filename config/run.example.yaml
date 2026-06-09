@@ -1,8 +1,8 @@
 # tooleval run matrix + scaffold knobs.
 # M1 uses only `models` (first entry) + passthrough via the CLI; the full matrix runner lands in M2.
 models:
-  - {provider: ollama, model: "qwen3.5:0.8b"}   # swap to qwen3.5:4b once pulled
-  - {provider: ollama, model: "gemma4:e4b"}      # requires Ollama >= 0.20.2
+  - {provider: ollama, model: "qwen3.5:4b-mlx"}  # representative small baseline
+  - {provider: ollama, model: "gemma4:e4b-mlx"}  # requires Ollama >= 0.20.2 for tool parsing
 retrieval:
   - {kind: passthrough}
   - {kind: embedding, k: 8}                       # M2; embeds via nomic-embed-text
