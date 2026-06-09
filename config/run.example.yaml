@@ -1,0 +1,20 @@
+# tooleval run matrix + scaffold knobs.
+# M1 uses only `models` (first entry) + passthrough via the CLI; the full matrix runner lands in M2.
+models:
+  - {provider: ollama, model: "qwen3.5:0.8b"}   # swap to qwen3.5:4b once pulled
+  - {provider: ollama, model: "gemma4:e4b"}      # requires Ollama >= 0.20.2
+retrieval:
+  - {kind: passthrough}
+  - {kind: embedding, k: 8}                       # M2; embeds via nomic-embed-text
+decoding: [unconstrained, constrained]            # M2; constrained = args-only (abstain still allowed)
+prompts: ["default"]                              # add variants later
+
+# Judge (M3) — cloud via OpenRouter, OpenAI-compatible /chat/completions.
+# Model name lives here; OPENROUTER_API_KEY (and OPENROUTER_MODEL fallback) live in .env.
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"                    # e.g. nvidia/nemotron-3-ultra-550b-a55b:free
+  # local fallback: {provider: ollama, model: "qwen3.5:9b"}
+
+tasks: "data/tasks/*.json"
+seed: 42

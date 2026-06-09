@@ -1,0 +1,167 @@
+[
+  {
+    "id": "single_vol",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Set the volume to 30."}],
+    "catalog": ["system.set_volume"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "system.set_volume", "args": {"level": 30}, "arg_match": {"level": "exact"}}]},
+    "notes": "structured arg, exact match"
+  },
+  {
+    "id": "single_dnd",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Turn on Do Not Disturb."}],
+    "catalog": ["system.toggle_dnd"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "system.toggle_dnd", "args": {"enabled": true}, "arg_match": {"enabled": "exact"}}]}
+  },
+  {
+    "id": "single_battery",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "What's my battery level?"}],
+    "catalog": ["system.get_battery"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "system.get_battery", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_brightness",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Dim the screen to 40%."}],
+    "catalog": ["system.set_brightness"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "system.set_brightness", "args": {"level": 40}, "arg_match": {"level": "exact"}}]}
+  },
+  {
+    "id": "single_darkmode",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Turn on dark mode."}],
+    "catalog": ["system.toggle_dark_mode"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "system.toggle_dark_mode", "args": {"enabled": true}, "arg_match": {"enabled": "exact"}}]}
+  },
+  {
+    "id": "single_listevents",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "What's on my calendar today?"}],
+    "catalog": ["calendar.list_events"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "calendar.list_events", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_mailsearch",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Search my email for the budget review."}],
+    "catalog": ["mail.search"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "mail.search", "args": {"query": "budget review"}, "arg_match": {"query": "present"}}]},
+    "notes": "free-text query graded on presence, not exact wording"
+  },
+  {
+    "id": "single_unread",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Show me my unread emails."}],
+    "catalog": ["mail.list_unread"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "mail.list_unread", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_filesearch",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Find the Q3 budget spreadsheet."}],
+    "catalog": ["files.search"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "files.search", "args": {"query": "Q3 budget"}, "arg_match": {"query": "present"}}]}
+  },
+  {
+    "id": "single_contactfind",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Look up Daisy's contact info."}],
+    "catalog": ["contacts.find"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "contacts.find", "args": {"name": "Daisy"}, "arg_match": {"name": "normalized"}}]}
+  },
+  {
+    "id": "single_weather",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "What's the weather right now?"}],
+    "catalog": ["weather.current"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "weather.current", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_pause",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Pause the music."}],
+    "catalog": ["music.pause"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "music.pause", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_skip",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Skip this song."}],
+    "catalog": ["music.next_track"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "music.next_track", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_openapp",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Open Safari."}],
+    "catalog": ["apps.open"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "apps.open", "args": {"name": "Safari"}, "arg_match": {"name": "normalized"}}]}
+  },
+  {
+    "id": "single_websearch",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Search the web for the difference between the M3 and M4 chips."}],
+    "catalog": ["web.search"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "web.search", "args": {"query": "M3 vs M4"}, "arg_match": {"query": "present"}}]},
+    "notes": "explicit 'search the web' → web.search is correct"
+  },
+  {
+    "id": "single_clipset",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Copy 'hello world' to my clipboard."}],
+    "catalog": ["clipboard.set"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "clipboard.set", "args": {"text": "hello world"}, "arg_match": {"text": "normalized"}}]}
+  },
+  {
+    "id": "single_textalex",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Text Alex that I'm running 10 minutes late."}],
+    "catalog": ["messages.send"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "messages.send", "args": {"recipient": "Alex", "body": "*"},
+       "arg_match": {"recipient": "normalized", "body": "present"}}]},
+    "notes": "Alex is unambiguous (one contact); body free-text"
+  },
+  {
+    "id": "single_wifi",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "What's my wifi status?"}],
+    "catalog": ["network.wifi_status"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "network.wifi_status", "args": {}, "arg_match": {}}]}
+  },
+  {
+    "id": "single_listdir",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "List the files in my Downloads folder."}],
+    "catalog": ["files.list_dir"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "files.list_dir", "args": {"path": "~/Downloads"}, "arg_match": {"path": "present"}}]}
+  },
+  {
+    "id": "single_lock",
+    "tier": "single",
+    "messages": [{"role": "user", "content": "Lock my screen."}],
+    "catalog": ["system.lock_screen"],
+    "expect": {"kind": "tool_call", "calls": [
+      {"name": "system.lock_screen", "args": {}, "arg_match": {}}]}
+  }
+]

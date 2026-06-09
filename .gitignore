@@ -144,3 +144,11 @@ vite.config.ts.timestamp-*
 
 # Claude Code artifacts (regenerable, local-only)
 .claude/artifacts/
+
+# Python / tooleval
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+results/

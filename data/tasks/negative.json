@@ -1,0 +1,145 @@
+[
+  {
+    "id": "neg_thanks",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Thanks, that's all for now!"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []},
+    "notes": "pure chit-chat; no tool applies"
+  },
+  {
+    "id": "neg_hello",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_arithmetic",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What's 17 times 23?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []},
+    "notes": "answer directly; there is no calculator tool"
+  },
+  {
+    "id": "neg_joke",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Tell me a joke."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_capital",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What's the capital of France?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []},
+    "notes": "general knowledge the model knows; should answer, not web.search"
+  },
+  {
+    "id": "neg_haiku",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Write me a haiku about the ocean."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_acronym",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What does the acronym API stand for?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_photosynthesis",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Explain how photosynthesis works."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_advice",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "I'm feeling stressed. Any advice?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_dogname",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What's a good name for a golden retriever?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_romeo",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Summarize the plot of Romeo and Juliet."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_airplane",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "How do I make a paper airplane?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_tcpudp",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What's the difference between TCP and UDP?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_translate",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Translate 'good morning' to Spanish."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_recipe",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Give me a recipe idea for dinner."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_iphone",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What year did the first iPhone come out?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_define",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Define the word 'serendipity'."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_book",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Recommend a good sci-fi book."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_count",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "Count to five for me."}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  },
+  {
+    "id": "neg_color",
+    "tier": "negative",
+    "messages": [{"role": "user", "content": "What's your favorite color?"}],
+    "catalog": [],
+    "expect": {"kind": "no_call", "calls": []}
+  }
+]

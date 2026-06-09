@@ -52,13 +52,17 @@ adapters ignore. A browser reload resets the form to `seed()` — copy unsaved J
   over-call) under constrained decoding.
 - **Tier is a reporting label; `expect` drives grading.** What makes a task `chain` is multiple
   *primary/mutating* calls, not the presence of a read-only lookup turn.
-- **Judge is local-only**, Qwen 3.5 / Gemma 4 families only, ceiling **Gemma 4 12B-q4**, used
-  sparingly. Default routine judge = **Qwen 3.5 9B**; reserve 12B-q4 for spot checks.
-- **Memory orchestration (16GB M2 constraint):** never interleave generate→judge→generate — a 4B
-  model + 12B-q4 judge won't co-reside without swapping. Run ALL generations + programmatic grading
-  first, queue only items needing a judge, then load the judge **once** and drain the queue. The
-  judge pass is a separate, optional, resumable stage. All headline metrics are programmatic, so the
-  scorecard is usable even with judging skipped.
+- **Judge = cloud via OpenRouter (revised 2026-06-08).** The judge only scores the *eval*, never
+  ships in the product, so a cloud dependency doesn't touch Mac-1's local property. Default
+  `nvidia/nemotron-3-ultra-550b-a55b:free` via OpenRouter's OpenAI-compatible `/chat/completions`.
+  Key = `OPENROUTER_API_KEY` and model = `OPENROUTER_MODEL`, both in `.env` (gitignored). Judge stays
+  **provider-swappable** (local Qwen 3.5 / Gemma 4 still selectable in run.yaml). Cloud judge is a
+  *different family* from the models-under-test → removes the same-family caveat. Cache judge verdicts
+  for reproducibility (cloud isn't bit-deterministic even at temp 0).
+- **Memory orchestration** only matters if a *local* judge is chosen: never co-reside a 4B model +
+  12B judge on 16GB. With the cloud judge default this is moot — local memory only ever holds the
+  model-under-test. Either way the judge pass is a separate, optional, resumable stage, and all
+  headline metrics are programmatic (scorecard usable even with judging skipped).
 - **Add `retrieval_recall@k`** (did the gold tool survive top-k?) so embedding-retrieval failures
   are attributable to the retriever vs the model. Trivially 1.0 under `passthrough`.
 - **`passthrough` runs the full catalog** (the deliberately-unfair baseline) — its job is to
