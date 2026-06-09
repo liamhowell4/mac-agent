@@ -18,11 +18,27 @@ from ..types import ToolSchema
 
 HARD_CAP = 15  # never surface more than this, even if k is larger
 
+# Asymmetric-retrieval task prefixes. Using the right prefix materially improves recall —
+# omitting them (the naive baseline) measurably hurts both nomic and e5.
+PREFIXES = {
+    "e5": ("query: ", "passage: "),
+    "nomic": ("search_query: ", "search_document: "),
+    "bge": ("Represent this query for retrieving relevant passages: ", ""),
+}
+
+
+def _prefixes_for(model: str) -> tuple[str, str]:
+    m = model.lower()
+    for key, pair in PREFIXES.items():
+        if key in m:
+            return pair
+    return ("", "")  # unknown model → no prefix
+
 
 class EmbeddingRetriever:
     def __init__(
         self,
-        embed_model: str = "nomic-embed-text",
+        embed_model: str = "e5",  # was nomic; e5 with query:/passage: prefixes retrieves better
         host: str = "http://localhost:11434",
         cache_dir: Path | None = Path("results/cache"),
     ):
@@ -30,6 +46,7 @@ class EmbeddingRetriever:
         self.name = f"embedding:{embed_model}"
         self.host = host.rstrip("/")
         self.cache_dir = cache_dir
+        self.q_prefix, self.d_prefix = _prefixes_for(embed_model)
         self._matrix: np.ndarray | None = None
         self._names: list[str] = []
 
@@ -46,7 +63,7 @@ class EmbeddingRetriever:
         return vecs / np.clip(norms, 1e-9, None)
 
     def _tool_text(self, t: ToolSchema) -> str:
-        return f"{t.name}: {t.description}"
+        return f"{self.d_prefix}{t.name}: {t.description}"
 
     def _ensure_index(self, catalog: list[ToolSchema]) -> None:
         if self._matrix is not None and self._names == [t.name for t in catalog]:
@@ -72,7 +89,7 @@ class EmbeddingRetriever:
     def select(self, query: str, catalog: list[ToolSchema], k: int) -> list[ToolSchema]:
         self._ensure_index(catalog)
         assert self._matrix is not None
-        qv = self._embed([query])[0]
+        qv = self._embed([self.q_prefix + query])[0]
         sims = self._matrix @ qv
         k = min(k, HARD_CAP, len(catalog))
         top = np.argsort(-sims)[:k]

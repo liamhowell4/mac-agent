@@ -15,6 +15,13 @@ VOL = ToolSchema(
 )
 
 
+def test_embedding_prefixes():
+    from tooleval.retrieval.embedding import _prefixes_for
+    assert _prefixes_for("intfloat/e5-large-v2") == ("query: ", "passage: ")
+    assert _prefixes_for("nomic-embed-text") == ("search_query: ", "search_document: ")
+    assert _prefixes_for("some-unknown-model") == ("", "")
+
+
 def test_expand_cells_is_full_product():
     cfg = {
         "models": [{"provider": "ollama", "model": "a"}, {"provider": "ollama", "model": "b"}],
