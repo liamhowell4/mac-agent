@@ -1,0 +1,98 @@
+[
+  {
+    "id": "amb_two_sarahs",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Text Sarah I'm running late."}],
+    "catalog": ["messages.send", "contacts.find"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "two contacts named Sarah (Chen, Kim) -> must ask which, not guess"
+  },
+  {
+    "id": "amb_cancel_meeting",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Cancel my meeting."}],
+    "catalog": ["calendar.list_events", "calendar.delete_event"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "multiple events today -> which one?"
+  },
+  {
+    "id": "amb_move_meeting",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Move my meeting to the afternoon."}],
+    "catalog": ["calendar.list_events", "calendar.update_event"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "which meeting, and what time?"
+  },
+  {
+    "id": "amb_delete_file",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Delete that file."}],
+    "catalog": ["files.delete", "files.search"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "no referent -> which file?"
+  },
+  {
+    "id": "amb_call_her",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Call her."}],
+    "catalog": ["calls.phone", "contacts.find"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "no antecedent for 'her'"
+  },
+  {
+    "id": "amb_play_that_song",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Play that song."}],
+    "catalog": ["music.play", "music.search"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "which song?"
+  },
+  {
+    "id": "amb_email_boss",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Email my boss the update."}],
+    "catalog": ["mail.send", "contacts.find"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "no boss in contacts; who, and what update?"
+  },
+  {
+    "id": "amb_turn_it_up",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Turn it up."}],
+    "catalog": ["system.set_volume", "system.set_brightness", "music.set_volume"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "volume? brightness? by how much?"
+  },
+  {
+    "id": "amb_schedule_lunch",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Schedule lunch."}],
+    "catalog": ["calendar.create_event"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "with whom, when?"
+  },
+  {
+    "id": "amb_remind_about_it",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Remind me about it later."}],
+    "catalog": ["reminders.create"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "about what, and when?"
+  },
+  {
+    "id": "amb_send_them_file",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Send them the file."}],
+    "catalog": ["mail.send", "messages.send", "files.search"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "who is 'them', which file, which channel?"
+  },
+  {
+    "id": "amb_reschedule_it",
+    "tier": "ambiguous",
+    "messages": [{"role": "user", "content": "Reschedule it to tomorrow."}],
+    "catalog": ["calendar.list_events", "calendar.update_event"],
+    "expect": {"kind": "clarify", "calls": []},
+    "notes": "reschedule what?"
+  }
+]

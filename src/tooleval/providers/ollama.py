@@ -74,8 +74,9 @@ class OllamaProvider:
         host: str = "http://localhost:11434",
         seed: int = 42,
         temperature: float = 0.0,
-        timeout: float = 300.0,
+        timeout: float = 120.0,
         num_ctx: int = 16384,
+        num_predict: int = 2048,
     ):
         self.model = model
         self.name = f"ollama:{model}"
@@ -87,9 +88,18 @@ class OllamaProvider:
         # passthrough) is ~13k tokens; 16384 fits every cell and stops Gemma from allocating
         # KV for its huge default window (which swapped a 16GB Mac at ~17.7GB resident).
         self.num_ctx = num_ctx
+        # Cap output tokens so a model can't run away in `format` mode (Gemma did exactly this
+        # under constrained decoding, generating until it hung the run). Tool calls / clarify
+        # replies are short; 2048 is ample.
+        self.num_predict = num_predict
 
     def _options(self) -> dict[str, Any]:
-        return {"temperature": self.temperature, "seed": self.seed, "num_ctx": self.num_ctx}
+        return {
+            "temperature": self.temperature,
+            "seed": self.seed,
+            "num_ctx": self.num_ctx,
+            "num_predict": self.num_predict,
+        }
 
     def complete(
         self,

@@ -52,6 +52,7 @@ class RunRecord:
     turns: int = 0
     retrieval_recall: bool | None = None
     hit_turn_limit: bool = False
+    error: str | None = None
     offered: list[str] = field(default_factory=list)
     trace: list[dict] = field(default_factory=list)
     cached: bool = False
@@ -130,6 +131,7 @@ class Runner:
             turns=interaction["turns"],
             retrieval_recall=recall,
             hit_turn_limit=interaction["hit_turn_limit"],
+            error=interaction.get("error"),
             offered=offered_names,
             trace=interaction["trace"],
             cached=interaction.get("cached", False),
@@ -158,11 +160,17 @@ class Runner:
         latency = 0.0
         ptoks = ctoks = 0
         hit_limit = False
+        error: str | None = None
         turns = 0
 
         for turn in range(self.turn_cap):
             turns = turn + 1
-            comp = self.provider.complete(messages, offered, self.constrained)
+            try:
+                comp = self.provider.complete(messages, offered, self.constrained)
+            except Exception as e:  # noqa: BLE001 — one bad task must not abort the matrix
+                error = f"{type(e).__name__}: {e}"
+                trace.append({"turn": turns, "error": error})
+                break
             latency += comp.latency_s
             ptoks += comp.prompt_tokens
             ctoks += comp.completion_tokens
@@ -197,6 +205,7 @@ class Runner:
             "completion_tokens": ctoks,
             "turns": turns,
             "hit_turn_limit": hit_limit,
+            "error": error,
             "offered": offered_names,
             "cached": False,
         }
