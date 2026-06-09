@@ -11,16 +11,25 @@ proper scaffolding*. The harness does double duty: a zero-shot scorecard now, an
 test set + grader for a future fine-tune. The product north star is a Macatron/Mac-1-style local
 assistant that controls macOS via hundreds of tools (calendar, mail, messages, files, system, etc.).
 
-The full spec is the **build brief** (handed in as the project spec) — it is the source of truth
-for repo layout (§5), abstractions (§6), dataset (§7), grading (§8), metrics (§9), config (§10),
-and milestones (§12). Read it before building. Consider committing it into the repo as `docs/`.
+The full spec is the **build brief** at `docs/build-brief.md` — the source of truth for repo
+layout (§5), abstractions (§6), dataset (§7), grading (§8), metrics (§9), config (§10), and
+milestones (§12). Its addendum lists the resolved decisions; read it before building. A visual,
+step-by-step roadmap lives at `.claude/artifacts/plan-tooleval.html` (open in a browser).
 
 ## Current state (important)
 
-The harness is **not built yet**. The only real artifact is `catalog_builder.html`. Do NOT assume
-the `src/tooleval/` tree, `pyproject.toml`, or any commands below exist — they are the *target*,
-not the present. M1 (skeleton + single/negative MVP) is the next implementation step, pending the
+The harness is **not built yet**. Real artifacts so far: `catalog_builder.html`, `CLAUDE.md`,
+`docs/build-brief.md`, and `.claude/artifacts/plan-tooleval.html`. Do NOT assume the
+`src/tooleval/` tree, `pyproject.toml`, or any commands below exist — they are the *target*, not
+the present. M1 (skeleton + single/negative MVP) is the next implementation step, pending the
 user's greenlight; the user is treating this as planning-first.
+
+The catalog now holds **103 tools across 24 domains** (calendar, mail, messages, contacts, files,
+system, music, web, apps, clipboard, screen, weather, network, devices, calls, reminders, shell,
+notes, + gap-only domains). It is large enough that `passthrough` genuinely breaks a 4B model —
+which is the point. Dangerous ops (`shell.run_command`, `system.restart_or_shutdown`,
+`files.delete`/`files.compress`) are prime material for negative/safety tasks. A few tools are
+flagged `held_out` as fine-tune-generalization seeds; `notes.create` is the lone distractor.
 
 ## `catalog_builder.html`
 
