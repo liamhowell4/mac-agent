@@ -75,6 +75,7 @@ class OllamaProvider:
         seed: int = 42,
         temperature: float = 0.0,
         timeout: float = 300.0,
+        num_ctx: int = 16384,
     ):
         self.model = model
         self.name = f"ollama:{model}"
@@ -82,6 +83,13 @@ class OllamaProvider:
         self.seed = seed
         self.temperature = temperature
         self.timeout = timeout
+        # Cap the context window so the KV cache fits 16GB. Our largest prompt (103-tool
+        # passthrough) is ~13k tokens; 16384 fits every cell and stops Gemma from allocating
+        # KV for its huge default window (which swapped a 16GB Mac at ~17.7GB resident).
+        self.num_ctx = num_ctx
+
+    def _options(self) -> dict[str, Any]:
+        return {"temperature": self.temperature, "seed": self.seed, "num_ctx": self.num_ctx}
 
     def complete(
         self,
@@ -98,7 +106,7 @@ class OllamaProvider:
             "model": self.model,
             "messages": [_to_wire(m) for m in messages],
             "stream": False,
-            "options": {"temperature": self.temperature, "seed": self.seed},
+            "options": self._options(),
         }
         if tools:
             payload["tools"] = to_ollama_tools(tools)
@@ -136,7 +144,7 @@ class OllamaProvider:
             "messages": _constrained_wire(messages, tools),
             "stream": False,
             "format": schema,
-            "options": {"temperature": self.temperature, "seed": self.seed},
+            "options": self._options(),
         }
         data = self._post(payload)
         content = data.get("message", {}).get("content") or "{}"
