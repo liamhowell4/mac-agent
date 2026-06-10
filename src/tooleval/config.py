@@ -44,10 +44,26 @@ def load_config(path: str | Path) -> dict:
     return yaml.safe_load(Path(path).read_text())
 
 
+# Providers are cached per spec: Ollama is server-backed (cheap to re-wrap), but
+# MLXProvider lazy-loads 4–9GB of weights — a fresh instance per cell would reload them.
+_provider_cache: dict[tuple, Any] = {}
+
+
 def build_provider(spec: dict, host: str, seed: int):
-    if spec["provider"] == "ollama":
-        return OllamaProvider(spec["model"], host=host, seed=seed)
-    raise NotImplementedError(f"provider '{spec['provider']}' not available (MLX lands in M4)")
+    kind = spec["provider"]
+    key = (kind, spec["model"], host, seed)
+    if key in _provider_cache:
+        return _provider_cache[key]
+    if kind == "ollama":
+        provider = OllamaProvider(spec["model"], host=host, seed=seed)
+    elif kind == "mlx":
+        from .providers.mlx import MLXProvider  # noqa: PLC0415 — keeps mlx_lm optional
+
+        provider = MLXProvider(spec["model"], seed=seed)
+    else:
+        raise NotImplementedError(f"unknown provider kind: {kind!r}")
+    _provider_cache[key] = provider
+    return provider
 
 
 _retriever_cache: dict[tuple, Any] = {}
@@ -68,9 +84,20 @@ def build_retriever(spec: dict, host: str) -> tuple[Any, int]:
 
 
 def expand_cells(config: dict) -> list[tuple[dict, dict, str, str]]:
-    """All (model_spec, retrieval_spec, decoding, prompt) combinations."""
-    models = config["models"]
+    """All (model_spec, retrieval_spec, decoding, prompt) combinations.
+
+    A model spec may carry `retrieval` / `decoding` / `prompts` keys that restrict the
+    global axes for that model only (e.g. a big reference model running passthrough-only).
+    `retrieval` on a model spec is a list of *kinds* matched against the global entries.
+    """
     retrieval = config["retrieval"]
     decoding = config.get("decoding", ["unconstrained"])
     prompts = config.get("prompts", ["default"])
-    return list(product(models, retrieval, decoding, prompts))
+    cells: list[tuple[dict, dict, str, str]] = []
+    for mspec in config["models"]:
+        r = [s for s in retrieval if s["kind"] in mspec["retrieval"]] \
+            if "retrieval" in mspec else retrieval
+        d = mspec.get("decoding", decoding)
+        p = mspec.get("prompts", prompts)
+        cells.extend(product([mspec], r, d, p))
+    return cells

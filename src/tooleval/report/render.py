@@ -53,11 +53,47 @@ def _cell_metrics(rows: list[dict]) -> dict:
         if rows else None,
         "errors": sum(1 for r in rows if r.get("error")),
         "turn_limit_hits": sum(1 for r in rows if r.get("hit_turn_limit")),
+        "failure_modes": _failure_modes(rows),
     }
 
 
+def _failure_mode(r: dict) -> str:
+    """Classify one failed row by its dominant failure (precedence order)."""
+    g = r["grade"]
+    if r.get("error"):
+        return "error"
+    if r.get("hit_turn_limit"):
+        return "turn_limit"
+    if r["tier"] == "negative" and g.get("overcalled"):
+        return "overcall"
+    if r["tier"] == "ambiguous":
+        return "no_clarify"
+    if g.get("selection_ok") is False:
+        return "wrong_tool"
+    if g.get("arg_valid") is False or g.get("arg_correct") is False:
+        return "bad_args"
+    if r["tier"] == "chain" and g.get("chain_complete") is False:
+        return "chain_incomplete"
+    return "other"
+
+
+def _failure_modes(rows: list[dict]) -> dict[str, int]:
+    """Histogram of failure modes across failed rows — answers WHY a cell loses points."""
+    out: dict[str, int] = {}
+    for r in rows:
+        if r["grade"].get("passed"):
+            continue
+        mode = _failure_mode(r)
+        out[mode] = out.get(mode, 0) + 1
+    return out
+
+
 def _cell_label(cell: dict) -> str:
-    return f"{cell['model'].replace('ollama:', '')} | {cell['retrieval']} | {cell['decoding']}"
+    # prompt is part of cell identity — omitting it merges default/restraint runs and
+    # averages their metrics together (hiding prompt-variant effects). Keep it in the key.
+    prompt = cell.get("prompt", "default")
+    return (f"{cell['model'].replace('ollama:', '')} | {cell['retrieval']} | "
+            f"{cell['decoding']} | {prompt}")
 
 
 def compute(rows: list[dict]) -> list[dict]:
@@ -125,6 +161,14 @@ def render_markdown(cells: list[dict], hl: dict, meta: dict) -> str:
     for c in cells:
         cells_pt = [_fmt(c["per_tier"].get(t, {}).get("task_pass_rate")) for t in TIERS]
         L.append(f"| {c['label']} | " + " | ".join(cells_pt) + " |")
+
+    modes = sorted({m for c in cells for m in c["overall"].get("failure_modes", {})})
+    if modes:
+        L += ["", "## Failure modes (count of failed tasks by dominant cause)", "",
+              "| cell | " + " | ".join(modes) + " |", "|---|" + "---|" * len(modes)]
+        for c in cells:
+            fm = c["overall"].get("failure_modes", {})
+            L.append(f"| {c['label']} | " + " | ".join(str(fm.get(m, 0)) for m in modes) + " |")
     return "\n".join(L) + "\n"
 
 

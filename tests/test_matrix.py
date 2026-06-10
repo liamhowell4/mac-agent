@@ -33,6 +33,40 @@ def test_expand_cells_is_full_product():
     assert len(cells) == 2 * 2 * 2 * 1
 
 
+def test_expand_cells_per_model_overrides():
+    cfg = {
+        "models": [
+            {"provider": "ollama", "model": "a"},
+            {"provider": "ollama", "model": "big", "retrieval": ["passthrough"],
+             "prompts": ["default"]},
+        ],
+        "retrieval": [{"kind": "passthrough"}, {"kind": "embedding", "k": 8}],
+        "decoding": ["unconstrained"],
+        "prompts": ["default", "restraint"],
+    }
+    cells = expand_cells(cfg)
+    # a: 2 retrieval × 2 prompts = 4; big: passthrough only × default only = 1
+    assert len(cells) == 5
+    big_cells = [c for c in cells if c[0]["model"] == "big"]
+    assert len(big_cells) == 1
+    assert big_cells[0][1]["kind"] == "passthrough" and big_cells[0][3] == "default"
+
+
+def test_prompt_label_separates_cells():
+    from tooleval.eval.runner import PROMPTS, Runner
+    from tooleval.retrieval.passthrough import PassthroughRetriever
+
+    class _Stub:
+        name = "stub"
+
+    r_default = Runner(_Stub(), PassthroughRetriever(), [VOL], cache_dir=None)
+    r_restraint = Runner(_Stub(), PassthroughRetriever(), [VOL], cache_dir=None,
+                         system_prompt=PROMPTS["restraint"], prompt_label="restraint")
+    assert r_default.cell.prompt == "default"
+    assert r_restraint.cell.prompt == "restraint"
+    assert r_default.cell != r_restraint.cell  # distinct cells → distinct cache keys
+
+
 def test_expand_cells_defaults():
     cfg = {"models": [{"provider": "ollama", "model": "a"}], "retrieval": [{"kind": "passthrough"}]}
     cells = expand_cells(cfg)

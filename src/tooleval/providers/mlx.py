@@ -17,6 +17,7 @@ a per-tool grammar can be added with mlx_lm's logit processors.
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import time
@@ -24,26 +25,96 @@ from typing import Any
 
 from ..types import Completion, Msg, ToolCall, ToolSchema
 
-# Qwen-style: <tool_call>{"name": "...", "arguments": {...}}</tool_call>
-_QWEN_TC = re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>", re.S)
+# Qwen-style wrapper; body is either JSON ({"name":..,"arguments":..}) or, on Qwen3.5,
+# XML-ish: <function=name><parameter=key>value</parameter>...</function>
+_QWEN_TC = re.compile(r"<tool_call>\s*(.*?)\s*</tool_call>", re.S)
+_XML_FN = re.compile(r"<function=([\w.\-]+)>(.*?)</function>", re.S)
+_XML_PARAM = re.compile(r"<parameter=([\w.\-]+)>\s*(.*?)\s*</parameter>", re.S)
 # Gemma-style: ```tool_code\n{...}\n``` or ```json fenced tool call
 _FENCE_TC = re.compile(r"```(?:tool_code|json)?\s*(\{.*?\})\s*```", re.S)
+# LFM2-style: <|tool_call_start|>[name(kw=val, ...)]<|tool_call_end|> (Pythonic, or JSON)
+_LFM_TC = re.compile(r"<\|tool_call_start\|>\s*(.*?)\s*<\|tool_call_end\|>", re.S)
+
+
+def _parse_pythonic_calls(blob: str) -> list[ToolCall]:
+    """Parse LFM2's Pythonic call list, e.g. ``[files.search(query="tax", limit=5)]``."""
+    try:
+        tree = ast.parse(blob.strip(), mode="eval")
+    except SyntaxError:
+        return []
+    nodes = tree.body.elts if isinstance(tree.body, ast.List) else [tree.body]
+    out: list[ToolCall] = []
+    for node in nodes:
+        if not isinstance(node, ast.Call):
+            continue
+        name = ast.unparse(node.func)  # handles dotted names like files.search
+        args: dict[str, Any] = {}
+        for kw in node.keywords:
+            if kw.arg is None:
+                continue
+            try:
+                args[kw.arg] = ast.literal_eval(kw.value)
+            except (ValueError, SyntaxError):
+                args[kw.arg] = ast.unparse(kw.value)
+        out.append(ToolCall(name=name, arguments=args))
+    return out
+
+
+def _coerce(value: str) -> Any:
+    """Best-effort typing for XML parameter values ('30' → 30, 'true' → True)."""
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return value
+
+
+def _parse_xml_calls(blob: str) -> list[ToolCall]:
+    """Parse Qwen3.5's XML-ish format: <function=name><parameter=k>v</parameter>...</function>."""
+    out: list[ToolCall] = []
+    for name, body in _XML_FN.findall(blob):
+        args = {k: _coerce(v) for k, v in _XML_PARAM.findall(body)}
+        out.append(ToolCall(name=name, arguments=args))
+    return out
+
+
+def _from_obj(obj: Any) -> ToolCall | None:
+    if not isinstance(obj, dict) or not obj.get("name"):
+        return None
+    args = obj.get("arguments", obj.get("parameters", {}))
+    return ToolCall(name=obj["name"], arguments=args if isinstance(args, dict) else {})
 
 
 def parse_text_tool_calls(text: str) -> list[ToolCall]:
-    """Extract tool calls from raw model text (Qwen <tool_call> or fenced JSON)."""
+    """Extract tool calls from raw model text (Qwen <tool_call>, LFM2, or fenced JSON)."""
     out: list[ToolCall] = []
-    blocks = _QWEN_TC.findall(text) or _FENCE_TC.findall(text)
-    for blk in blocks:
+    for blk in _LFM_TC.findall(text):
+        try:  # some LFM2 checkpoints emit JSON inside the markers; most are Pythonic
+            loaded = json.loads(blk)
+            objs = loaded if isinstance(loaded, list) else [loaded]
+            out.extend(c for c in (_from_obj(o) for o in objs) if c)
+        except json.JSONDecodeError:
+            out.extend(_parse_pythonic_calls(blk))
+    if out:
+        return out
+    for blk in _QWEN_TC.findall(text):
+        try:
+            call = _from_obj(json.loads(blk))
+            if call:
+                out.append(call)
+        except json.JSONDecodeError:
+            out.extend(_parse_xml_calls(blk))
+    if out:
+        return out
+    # bare XML calls (no <tool_call> wrapper), then fenced JSON, as last resorts
+    out = _parse_xml_calls(text)
+    for blk in _FENCE_TC.findall(text):
         try:
             obj = json.loads(blk)
         except json.JSONDecodeError:
             continue
-        name = obj.get("name")
-        if not name:
-            continue
-        args = obj.get("arguments", obj.get("parameters", {}))
-        out.append(ToolCall(name=name, arguments=args if isinstance(args, dict) else {}))
+        call = _from_obj(obj)
+        if call:
+            out.append(call)
     return out
 
 
@@ -82,20 +153,27 @@ class MLXProvider:
         tools: list[ToolSchema],
         constrained: bool = False,
     ) -> Completion:
+        if constrained:
+            # No grammar path is wired yet; silently running unconstrained would mislabel
+            # results. Skip mlx × constrained cells in the config instead.
+            raise NotImplementedError("MLX provider has no constrained-decoding support yet")
         self._ensure_loaded()
         from mlx_lm import generate  # noqa: PLC0415
 
-        wire = [{"role": m.role, "content": m.content or ""} for m in messages if m.role != "tool"]
-        # tool results: fold into a user turn (mlx chat templates vary in tool-role support)
-        for m in messages:
-            if m.role == "tool":
-                wire.append(
-                    {"role": "user", "content": f"[result from {m.tool_name}]: {m.content}"}
-                )
+        # Preserve turn order — moving tool results out of sequence scrambles multi-turn
+        # chains. Try the tokenizer's native tool role first; fall back to a user-role
+        # rendering IN PLACE if the chat template rejects the tool role.
         tool_schemas = [t.to_openai() for t in tools] if tools else None
-        prompt = self._tokenizer.apply_chat_template(
-            wire, tools=tool_schemas, add_generation_prompt=True, tokenize=False
-        )
+        try:
+            prompt = self._tokenizer.apply_chat_template(
+                self._wire(messages, native_tool_role=True),
+                tools=tool_schemas, add_generation_prompt=True, tokenize=False,
+            )
+        except Exception:  # noqa: BLE001 — template rejected the tool role; render in place
+            prompt = self._tokenizer.apply_chat_template(
+                self._wire(messages, native_tool_role=False),
+                tools=tool_schemas, add_generation_prompt=True, tokenize=False,
+            )
 
         t0 = time.perf_counter()
         text = generate(
@@ -109,10 +187,37 @@ class MLXProvider:
             tool_calls=calls,
             text=None if calls else text.strip() or None,
             latency_s=latency,
-            prompt_tokens=0,
-            completion_tokens=0,
+            prompt_tokens=len(self._tokenizer.encode(prompt)),
+            completion_tokens=len(self._tokenizer.encode(text)),
             raw={"text": text},
         )
+
+    @staticmethod
+    def _wire(messages: list[Msg], native_tool_role: bool) -> list[dict]:
+        """Convert Msgs to chat-template dicts, preserving turn order.
+
+        native_tool_role=True emits {"role": "tool", ...} entries (Qwen-style templates);
+        False renders tool results as user turns in the same position (LFM/Gemma-style
+        templates that reject the tool role).
+        """
+        wire: list[dict] = []
+        for m in messages:
+            if m.role == "tool":
+                if native_tool_role:
+                    wire.append({"role": "tool", "name": m.tool_name,
+                                 "content": m.content or ""})
+                else:
+                    wire.append({"role": "user",
+                                 "content": f"[result from {m.tool_name}]: {m.content}"})
+            elif m.role == "assistant" and m.tool_calls:
+                # keep the call visible in-history so the model can track chain state
+                calls = "; ".join(f"{c.name}({json.dumps(c.arguments)})" for c in m.tool_calls)
+                content = (m.content or "").strip()
+                wire.append({"role": "assistant",
+                             "content": (content + f"\n[called: {calls}]").strip()})
+            else:
+                wire.append({"role": m.role, "content": m.content or ""})
+        return wire
 
     def unload(self) -> None:
         self._model = None

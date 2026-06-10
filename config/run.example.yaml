@@ -1,13 +1,28 @@
-# tooleval run matrix + scaffold knobs.
-# M1 uses only `models` (first entry) + passthrough via the CLI; the full matrix runner lands in M2.
+# tooleval run matrix + scaffold knobs (wave 2, 2026-06-09).
+# A model entry may carry its own `retrieval` (list of kinds) / `decoding` / `prompts`
+# keys to restrict the global axes for that model only.
 models:
-  - {provider: ollama, model: "qwen3.5:4b-mlx"}  # representative small baseline
-  - {provider: ollama, model: "gemma4:e4b-mlx"}  # requires Ollama >= 0.20.2 for tool parsing
+  - {provider: ollama, model: "qwen3.5:4b-mlx"}   # representative small baseline
+  - {provider: ollama, model: "gemma4:e4b-mlx"}   # requires Ollama >= 0.20.2 for tool parsing
+  # scale reference: does 4B→9B improve chains/clarify within the qwen family?
+  - {provider: ollama, model: "qwen3.5:9b-mlx"}
+  # 12B QAT reference cell — "does scale fix Gemma over-calling?" (passthrough only)
+  - {provider: ollama, model: "gemma4:12b-it-qat", retrieval: [passthrough]}
+  # HF MLX cells (raw-text tool parsing). OptiQ = clean baseline (same base as Ollama qwen);
+  # Jackrong = reasoning-distilled comparison (already a fine-tune, not a baseline);
+  # LFM2.5 = MoE edge model (~1.5B active), most deployment-shaped candidate.
+  - {provider: mlx, model: "mlx-community/Qwen3.5-4B-OptiQ-4bit"}
+  # restraint dropped for the two remaining MLX models (answered on Ollama cells; saves ~5h)
+  - {provider: mlx, model: "Jackrong/MLX-Qwen3.5-4B-Claude-4.6-Opus-Reasoning-Distilled-v2-8bit",
+     prompts: [default]}
+  - {provider: mlx, model: "LiquidAI/LFM2.5-8B-A1B-MLX-4bit", prompts: [default]}
 retrieval:
   - {kind: passthrough}
-  - {kind: embedding, k: 8}                       # M2; embeds via nomic-embed-text
-decoding: [unconstrained, constrained]            # M2; constrained = args-only (abstain still allowed)
-prompts: ["default"]                              # add variants later
+  - {kind: embedding, embed_model: "hf.co/ChristianAzinn/e5-base-v2-gguf:Q8_0", k: 8}
+# constrained dropped for wave 2: the Ollama single-JSON-decision mode breaks chains
+# (harness artifact) and MLX has no grammar path yet. Returns with the decoding fix.
+decoding: [unconstrained]
+prompts: [default, restraint]   # labels into eval/runner.py PROMPTS
 
 # Judge (M3) — cloud via OpenRouter, OpenAI-compatible /chat/completions.
 # Model name lives here; OPENROUTER_API_KEY (and OPENROUTER_MODEL fallback) live in .env.

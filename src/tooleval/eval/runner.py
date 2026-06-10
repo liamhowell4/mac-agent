@@ -28,6 +28,19 @@ DEFAULT_SYSTEM_PROMPT = (
     "question instead of guessing. When you have what you need, stop calling tools and reply."
 )
 
+# Prompt registry — config `prompts:` entries are labels into this map. The label is part
+# of the cell identity (and thus the result-cache key), so two prompts never share cache.
+PROMPTS = {
+    "default": DEFAULT_SYSTEM_PROMPT,
+    "restraint": (
+        "You are a helpful assistant on a Mac with access to tools. "
+        "Only call a tool when the request clearly needs one; answer chit-chat and "
+        "known facts directly, without tools. If the request is underspecified, or an "
+        "entity is ambiguous or unknown, ask a clarifying question instead of guessing. "
+        "After a tool result, continue any remaining steps of the request before replying."
+    ),
+}
+
 
 @dataclass
 class Cell:
@@ -82,6 +95,7 @@ class Runner:
         k: int = 8,
         turn_cap: int = DEFAULT_TURN_CAP,
         system_prompt: str = DEFAULT_SYSTEM_PROMPT,
+        prompt_label: str = "default",
         constrained: bool = False,
         cache_dir: Path | None = Path("results/cache"),
     ):
@@ -92,6 +106,7 @@ class Runner:
         self.k = k
         self.turn_cap = turn_cap
         self.system_prompt = system_prompt
+        self.prompt_label = prompt_label
         self.constrained = constrained
         self.cache_dir = cache_dir
         self._cat_hash = _catalog_hash(catalog)
@@ -104,7 +119,7 @@ class Runner:
             model=self.provider.name,
             retrieval=self.retriever.name,
             decoding="constrained" if self.constrained else "unconstrained",
-            prompt="default",
+            prompt=self.prompt_label,
         )
 
     def run_task(self, task: Task) -> RunRecord:

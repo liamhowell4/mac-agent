@@ -12,7 +12,7 @@ from pathlib import Path
 from .config import build_provider, build_retriever, expand_cells, load_config, load_dotenv
 from .eval.judge import judge_rows
 from .eval.metrics import aggregate
-from .eval.runner import Runner
+from .eval.runner import PROMPTS, Runner
 from .eval.task import load_tasks
 from .providers.ollama import (
     OllamaProvider,
@@ -134,17 +134,26 @@ def cmd_matrix(args: argparse.Namespace) -> int:
     prev_provider = None  # unload models when switching, so they don't co-reside on 16GB
     try:
         with raw_fp.open("w") as raw:
-            for ci, (mspec, rspec, decoding, _prompt) in enumerate(combos, 1):
+            for ci, (mspec, rspec, decoding, prompt_label) in enumerate(combos, 1):
+                constrained = decoding == "constrained"
+                if constrained and mspec["provider"] == "mlx":
+                    print(f"\n[cell {ci}/{len(combos)}] skipped — "
+                          f"mlx has no constrained decoding ({mspec['model']})")
+                    continue
+                if prompt_label not in PROMPTS:
+                    print(f"\n[cell {ci}/{len(combos)}] skipped — "
+                          f"unknown prompt label {prompt_label!r}")
+                    continue
                 provider = build_provider(mspec, args.host, seed)
                 if prev_provider is not None and prev_provider.name != provider.name:
                     print(f"   (unloading {prev_provider.name})")
                     prev_provider.unload()
                 prev_provider = provider
                 retriever, k = build_retriever(rspec, args.host)
-                constrained = decoding == "constrained"
                 runner = Runner(
                     provider, retriever, catalog,
                     seed=seed, k=k or args.k, constrained=constrained,
+                    system_prompt=PROMPTS[prompt_label], prompt_label=prompt_label,
                     cache_dir=None if args.no_cache else Path("results/cache"),
                 )
                 label = runner.cell.label()
@@ -160,6 +169,8 @@ def cmd_matrix(args: argparse.Namespace) -> int:
                 print(f"   pass={o['task_pass_rate']}  tool_sel={o['tool_selection_accuracy']}  "
                       f"overcall={o['overcall_rate']}  recall={o['retrieval_recall']}")
     finally:
+        if prev_provider is not None:
+            prev_provider.unload()  # unload_all only covers Ollama; this frees MLX weights too
         freed = unload_all(args.host)  # take down ALL models (incl. embed) when done
         if freed:
             print(f"\n[cleanup] unloaded: {', '.join(freed)}")
