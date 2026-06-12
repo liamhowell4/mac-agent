@@ -30,6 +30,8 @@ def _parse_when(s: str | None, default_hour: int = 9) -> dt.datetime:
         if word in low:
             day = now + dt.timedelta(days=delta)
             low = low.replace(word, "").strip(" ,@at")
+    if not low.strip():  # bare "today"/"tomorrow" — no time component
+        return day.replace(hour=default_hour, minute=0, second=0, microsecond=0)
     m = _TIME.match(low.strip())
     if m:
         hour = int(m.group(1))

@@ -32,3 +32,15 @@ def test_dangerous_wins_even_if_marked_read_only():
     # catalog mistakes must not soften the gate
     assert safety.classify(ToolCall("files.delete", {}), _schema("files.delete", True)) \
         == safety.DANGER
+
+
+def test_allowlist_promotes_mutating_to_auto_but_never_dangerous():
+    from tooleval.types import ToolCall
+
+    send = _schema("messages.send", False)
+    assert safety.classify(ToolCall("messages.send", {}), send, set()) == safety.CONFIRM
+    assert safety.classify(ToolCall("messages.send", {}), send,
+                           {"messages.send"}) == safety.AUTO
+    rm = _schema("files.delete", False)
+    assert safety.classify(ToolCall("files.delete", {}), rm,
+                           {"files.delete"}) == safety.DANGER

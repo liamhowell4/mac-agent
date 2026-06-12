@@ -51,7 +51,13 @@ def _ask_confirmation(ev: NeedsConfirmation) -> bool:
         print(f"  {RED}⚠ DANGEROUS: {ev.call.name}{RESET}\n{args}")
         return input(f"  type {RED}yes{RESET} to run: ").strip() == "yes"
     print(f"  {YELLOW}? {ev.call.name}{RESET} {args}")
-    return input("  run this? [y/N] ").strip().lower() in ("y", "yes")
+    answer = input("  run this? [y/N/a=always] ").strip().lower()
+    if answer in ("a", "always"):
+        from .safety import allow_always  # noqa: PLC0415
+
+        allow_always(ev.call.name)
+        return True
+    return answer in ("y", "yes")
 
 
 def _ask_input(ev: NeedsInput) -> str:
@@ -84,14 +90,59 @@ def _run_until_done(session: AgentSession, events) -> None:
 
 
 
+SETUP_PROBES = [
+    ("Calendar", 'tell application "Calendar" to get name of first calendar'),
+    ("Reminders", 'tell application "Reminders" to get name of first list'),
+    ("Contacts", 'tell application "Contacts" to get count of people'),
+    ("Messages", 'tell application "Messages" to get name'),
+    ("Mail", 'tell application "Mail" to get name'),
+    ("Music", 'tell application "Music" to get name'),
+    ("Notes", 'tell application "Notes" to get name'),
+    ("System Events", 'tell application "System Events" to get name of first process'),
+    ("Finder", 'tell application "Finder" to get name'),
+]
+
+
+def run_setup() -> int:
+    """Trigger every Automation permission prompt once, so macOS never asks again.
+
+    Grants attach to the process that asks (Terminal here, Quake1.app when its daemon
+    asks) — run this once from each launch context you use.
+    """
+    from .executors._util import ToolError, run_osascript  # noqa: PLC0415
+
+    print("Walking macOS Automation prompts — click OK on each dialog.")
+    for app, script in SETUP_PROBES:
+        try:
+            run_osascript(script, timeout=120)  # generous: waits for your click
+            print(f"  ✓ {app}")
+        except ToolError as e:
+            print(f"  ✗ {app}: {e}")
+    print("Triggering the Screen Recording prompt...")
+    try:
+        from .executors.screen import HANDLERS  # noqa: PLC0415
+
+        HANDLERS["screen.screenshot"]({})
+        print("  ✓ screenshot")
+    except ToolError as e:
+        print(f"  ✗ screenshot: {e}")
+    print("Done. These grants persist until the requesting app's signature changes.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(prog="quake")
+    ap.add_argument("--setup", action="store_true",
+                    help="trigger every macOS permission prompt once")
     ap.add_argument("--model", default=None)
     ap.add_argument("--host", default=DEFAULT_HOST)
     ap.add_argument("--sim", action="store_true", help="use the simulator (no real actions)")
     ap.add_argument("--think", default="off", choices=("on", "off"),
                     help="override the model's reasoning channel")
     args = ap.parse_args()
+
+    if args.setup:
+        return run_setup()
 
     try:
         assert_ollama_version(args.host)

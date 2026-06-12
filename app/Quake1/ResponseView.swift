@@ -1,42 +1,78 @@
 import SwiftUI
 
-/// Transcript card rendered under the capsule: prior query, tool rows,
-/// assistant text.
+/// One exchange = the user's query plus everything that answered it.
+private struct Exchange: Identifiable {
+    let id: String
+    let items: [TranscriptItem]
+}
+
+/// Transcript rendered as reverse-chronological cards: the newest exchange sits
+/// directly under the capsule; older ones stack below it.
 struct ResponseView: View {
     @EnvironmentObject private var client: DaemonClient
+
+    /// Group the flat transcript into exchanges (a `.user` item starts a new one),
+    /// newest first.
+    private var exchanges: [Exchange] {
+        var groups: [[TranscriptItem]] = []
+        for item in client.transcript {
+            if case .user = item {
+                groups.append([item])
+            } else if groups.isEmpty {
+                groups.append([item])
+            } else {
+                groups[groups.count - 1].append(item)
+            }
+        }
+        return groups.reversed().map { Exchange(id: $0.first?.id ?? UUID().uuidString,
+                                                items: $0) }
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(client.transcript) { item in
-                        row(for: item)
-                            .id(item.id)
-                    }
+                VStack(alignment: .leading, spacing: 10) {
                     if case .error(let message) = client.state {
                         errorRow(message)
+                            .padding(12)
+                            .background(cardShape)
+                    }
+                    ForEach(exchanges) { exchange in
+                        card(for: exchange)
+                            .id(exchange.id)
                     }
                 }
-                .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxHeight: 360)
             .fixedSize(horizontal: false, vertical: true)
             .onChange(of: client.transcript.count) {
-                if let last = client.transcript.last {
-                    proxy.scrollTo(last.id, anchor: .bottom)
+                if let newest = exchanges.first {
+                    proxy.scrollTo(newest.id, anchor: .top)
                 }
             }
         }
-        .background(
-            .ultraThinMaterial,
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.3), radius: 20, y: 6)
+    }
+
+    private var cardShape: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.25), radius: 14, y: 4)
+    }
+
+    private func card(for exchange: Exchange) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(exchange.items) { item in
+                row(for: item)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardShape)
     }
 
     @ViewBuilder

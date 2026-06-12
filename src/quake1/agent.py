@@ -16,6 +16,7 @@ This works synchronously for the CLI and via asyncio.to_thread for the daemon.
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Generator, Iterator
 from typing import Any, Protocol
 
@@ -34,7 +35,9 @@ from .events import (
     ToolStarted,
 )
 
-DEFAULT_TURN_CAP = 6
+# Model<->tool round-trips per request. The eval used 6; the product gets headroom for
+# longer chains (each turn is only ~3-7s with think off). QUAKE_TURN_CAP overrides.
+DEFAULT_TURN_CAP = int(os.environ.get("QUAKE_TURN_CAP", "8"))
 MAX_RESULT_CHARS = 1000  # tool-result JSON appended to history is truncated to this
 ASK_USER = "assistant.ask_user"
 
@@ -65,6 +68,7 @@ class AgentSession:
         self.turn_cap = turn_cap
         self.max_history_exchanges = max_history_exchanges
         self._by_name = {t.name: t for t in catalog}
+        self.allowlist = safety.load_allowlist()
         self._gen: Generator[Event, Any, None] | None = None
         self.blocked = False
         self.messages: list[Msg] = [Msg("system", system_prompt)]
@@ -142,7 +146,7 @@ class AgentSession:
             self.messages.append(Msg("assistant", comp.text, tool_calls=calls))
             for call in calls:
                 schema = self._by_name.get(call.name)
-                action = safety.classify(call, schema)
+                action = safety.classify(call, schema, self.allowlist)
                 if action != safety.AUTO:
                     decision = yield NeedsConfirmation(
                         call,

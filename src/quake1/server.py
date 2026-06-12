@@ -98,6 +98,7 @@ class Daemon:
                 loop.call_soon_threadsafe(bridge.put_nowait, _END)
 
         step = events_fn
+        last_text: str | None = None
         while True:
             blocking = None
             done = False
@@ -106,6 +107,10 @@ class Daemon:
                 ev = await bridge.get()
                 if ev is _END:
                     break
+                if isinstance(ev, Done) and ev.text and ev.text == last_text:
+                    ev = Done(None)  # client already rendered this text — don't duplicate
+                if isinstance(ev, AssistantText):
+                    last_text = ev.text
                 await send(_to_wire(ev, qid))
                 if isinstance(ev, (NeedsConfirmation, NeedsInput)):
                     blocking = ev

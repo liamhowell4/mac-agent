@@ -417,3 +417,13 @@ def test_executor_passes_success_through(osa):
     ex = Executor(load_catalog(CATALOG))
     out = json.loads(ex.execute(ToolCall("notes.create", {"body": "hi"})))
     assert out["status"] == "ok"
+
+
+def test_calendar_parse_when_bare_day_words():
+    # regression: "today" with no time component burned 6 turns in production
+    from quake1.executors.calendar import _parse_when
+
+    today = _parse_when("today", default_hour=0)
+    assert today.hour == 0 and today.date() == __import__("datetime").date.today()
+    tomorrow = _parse_when("tomorrow")
+    assert (tomorrow.date() - today.date()).days == 1
