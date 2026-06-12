@@ -64,15 +64,39 @@ struct ResponseView: View {
             .shadow(color: .black.opacity(0.25), radius: 14, y: 4)
     }
 
+    private var isWorking: Bool {
+        switch client.state {
+        case .thinking, .runningTool: return true
+        default: return false
+        }
+    }
+
     private func card(for exchange: Exchange) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let isNewest = exchange.id == exchanges.first?.id
+        return VStack(alignment: .leading, spacing: 10) {
             ForEach(exchange.items) { item in
                 row(for: item)
+            }
+            if isNewest && isWorking {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text(workingLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(cardShape)
+    }
+
+    private var workingLabel: String {
+        if case .runningTool(let name) = client.state {
+            return name.replacingOccurrences(of: ".", with: " › ")
+                       .replacingOccurrences(of: "_", with: " ")
+        }
+        return "thinking…"
     }
 
     @ViewBuilder

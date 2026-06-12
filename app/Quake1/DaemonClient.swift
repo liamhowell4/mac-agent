@@ -17,6 +17,7 @@ final class DaemonClient: ObservableObject {
 
     @Published private(set) var state: State = .idle
     @Published private(set) var transcript: [TranscriptItem] = []
+    private var toolSeq = 0
     @Published private(set) var isConnected = false
 
     /// Called when a connection attempt fails — AppDelegate uses it to
@@ -153,13 +154,17 @@ final class DaemonClient: ObservableObject {
             }
 
         case .toolStarted(let id, let call):
-            upsertTool(id: id, call: call, state: .running, hint: nil)
+            // ids from the daemon are per-QUERY; rows must be per-call or each new
+            // call overwrites the previous row
+            toolSeq += 1
+            transcript.append(.tool(id: "\(id)-\(toolSeq)", call: call,
+                                    state: .running, hint: nil))
             state = .runningTool(call.name)
 
-        case .toolFinished(let id, let call, let status, let hint):
+        case .toolFinished(_, let call, let status, let hint):
             let toolState: TranscriptItem.ToolState =
                 (status == "ok" || status == "success" || status == "done") ? .done : .failed
-            upsertTool(id: id, call: call, state: toolState, hint: hint)
+            finishLastRunningTool(named: call.name, state: toolState, hint: hint)
             state = .thinking
 
         case .confirm(let request):
@@ -184,20 +189,18 @@ final class DaemonClient: ObservableObject {
         }
     }
 
-    private func upsertTool(
-        id: String,
-        call: ToolCallPayload,
+    private func finishLastRunningTool(
+        named name: String,
         state toolState: TranscriptItem.ToolState,
         hint: String?
     ) {
-        let item = TranscriptItem.tool(id: id, call: call, state: toolState, hint: hint)
-        if let index = transcript.firstIndex(where: { existing in
-            if case .tool(let existingID, _, _, _) = existing { return existingID == id }
-            return false
-        }) {
-            transcript[index] = item
-        } else {
-            transcript.append(item)
+        for index in transcript.indices.reversed() {
+            if case .tool(let rowID, let call, .running, _) = transcript[index],
+               call.name == name {
+                transcript[index] = .tool(id: rowID, call: call,
+                                          state: toolState, hint: hint)
+                return
+            }
         }
     }
 
