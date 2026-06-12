@@ -61,7 +61,7 @@ struct CapsuleView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-        case .thinking:
+        case .working:
             ProgressView().controlSize(.small)
         case .runningTool:
             ProgressView().controlSize(.small)

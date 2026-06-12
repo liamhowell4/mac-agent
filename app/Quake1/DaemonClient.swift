@@ -8,7 +8,7 @@ final class DaemonClient: ObservableObject {
     enum State: Equatable {
         case idle
         case warming
-        case thinking
+        case working
         case runningTool(String)
         case confirming(ConfirmRequest)
         case asking(AskRequest)
@@ -165,7 +165,7 @@ final class DaemonClient: ObservableObject {
             let toolState: TranscriptItem.ToolState =
                 (status == "ok" || status == "success" || status == "done") ? .done : .failed
             finishLastRunningTool(named: call.name, state: toolState, hint: hint)
-            state = .thinking
+            state = .working
 
         case .confirm(let request):
             state = .confirming(request)
@@ -209,10 +209,17 @@ final class DaemonClient: ObservableObject {
     func send(query: String) {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        guard isConnected else {
+            state = .error("Quake's helper isn't running — starting it now. " +
+                           "Try again in a few seconds.")
+            onConnectFailure?()
+            connect()
+            return
+        }
         let id = UUID().uuidString
         currentQueryID = id
         transcript.append(.user(id: UUID(), text: trimmed))
-        state = .thinking
+        state = .working
         send(.query(id: id, text: trimmed))
     }
 
@@ -223,13 +230,13 @@ final class DaemonClient: ObservableObject {
             approved: approved,
             arguments: approved ? editedArguments : nil
         ))
-        state = approved ? .thinking : .idle
+        state = approved ? .working : .idle
     }
 
     func reply(answer: String) {
         guard case .asking(let request) = state else { return }
         send(.askReply(id: request.id, answer: answer))
-        state = .thinking
+        state = .working
     }
 
     func reset() {

@@ -34,11 +34,34 @@ final class DaemonProcess {
         )
 
         let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        // -l so the login shell PATH (homebrew, uv) is available.
-        p.arguments = ["-lc", "uv --directory \(shellQuoted(repoPath)) run quake-daemon"]
-        p.standardOutput = FileHandle.nullDevice
-        p.standardError = FileHandle.nullDevice
+        // Prefer the repo venv's entry point directly — zero PATH dependence.
+        // (zsh -lc does NOT source .zshrc, so PATH additions from conda/brew in
+        // .zshrc are invisible here; `uv` lookup failed silently that way.)
+        let venvDaemon = "\(repoPath)/.venv/bin/quake-daemon"
+        if FileManager.default.isExecutableFile(atPath: venvDaemon) {
+            p.executableURL = URL(fileURLWithPath: venvDaemon)
+        } else {
+            // fallback: probe common uv install locations, then bare `uv`
+            let home = NSHomeDirectory()
+            let candidates = [
+                "\(home)/.local/bin/uv", "/opt/homebrew/bin/uv",
+                "/usr/local/bin/uv", "\(home)/miniconda/bin/uv",
+            ]
+            let uv = candidates.first {
+                FileManager.default.isExecutableFile(atPath: $0)
+            } ?? "uv"
+            p.executableURL = URL(fileURLWithPath: "/bin/zsh")
+            p.arguments = ["-lc",
+                "\(uv) --directory \(shellQuoted(repoPath)) run quake-daemon"]
+        }
+        // log somewhere inspectable instead of the void
+        let logURL = FileManager.default.urls(
+            for: .applicationSupportDirectory, in: .userDomainMask
+        ).first!.appendingPathComponent("Quake1/daemon.log")
+        FileManager.default.createFile(atPath: logURL.path, contents: nil)
+        let log = try? FileHandle(forWritingTo: logURL)
+        p.standardOutput = log ?? FileHandle.nullDevice
+        p.standardError = log ?? FileHandle.nullDevice
         do {
             try p.run()
             process = p

@@ -66,7 +66,7 @@ struct ResponseView: View {
 
     private var isWorking: Bool {
         switch client.state {
-        case .thinking, .runningTool: return true
+        case .working, .runningTool: return true
         default: return false
         }
     }
@@ -78,12 +78,7 @@ struct ResponseView: View {
                 row(for: item)
             }
             if isNewest && isWorking {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text(workingLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                WorkingRow(label: workingLabel, isToolRunning: isToolRunning)
             }
         }
         .padding(14)
@@ -96,7 +91,12 @@ struct ResponseView: View {
             return name.replacingOccurrences(of: ".", with: " › ")
                        .replacingOccurrences(of: "_", with: " ")
         }
-        return "thinking…"
+        return "working…"
+    }
+
+    private var isToolRunning: Bool {
+        if case .runningTool = client.state { return true }
+        return false
     }
 
     @ViewBuilder
@@ -171,6 +171,36 @@ struct ResponseView: View {
         // Access, etc.) — land the user in Privacy & Security.
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security")!
         NSWorkspace.shared.open(url)
+    }
+}
+
+/// Status line under the newest card. If a tool runs suspiciously long, surface
+/// that macOS may be sitting on a permission dialog (the #1 silent blocker).
+private struct WorkingRow: View {
+    let label: String
+    let isToolRunning: Bool
+    @State private var slow = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if slow && isToolRunning {
+                Text("Still waiting — macOS may be showing a permission dialog. " +
+                     "Check for a prompt (it can appear behind other windows).")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
+        }
+        .task(id: label) {
+            slow = false
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
+            slow = true
+        }
     }
 }
 
