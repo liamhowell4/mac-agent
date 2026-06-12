@@ -17,7 +17,7 @@ quake = "quake1.cli:main"
 quake-daemon = "quake1.server:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.6"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.6"]
 
 [build-system]
 requires = ["hatchling"]
@@ -39,3 +39,4 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+asyncio_mode = "auto"
