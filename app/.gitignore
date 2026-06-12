@@ -1,0 +1,13 @@
+# xcodegen output
+*.xcodeproj/
+
+# Xcode build artifacts
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+
+# SwiftPM
+.build/
+.swiftpm/
