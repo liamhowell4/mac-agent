@@ -61,9 +61,19 @@ def judge_rows(
             row["judge_verdict"] = None
             continue
         final = _final_text(row) or ""
-        task = tasks_by_id.get(row["task_id"], {})
+        task = tasks_by_id.get(row["task_id"])
+        if task is None:
+            # Judging without the user query produces garbage verdicts (the judge sees an
+            # assistant asking about nothing). Loud skip; keep the programmatic grade.
+            print(f"[judge] WARNING: task {row['task_id']!r} not in --tasks glob; "
+                  "skipping judge for this row")
+            row["judge_verdict"] = None
+            errors += 1
+            continue
+        # query is part of the key: a verdict rendered against the wrong/missing query
+        # must never be replayed from cache
         key = hashlib.sha256(
-            f"{judge.model}|{row['task_id']}|{final}".encode()
+            f"{judge.model}|{row['task_id']}|{task.get('query', '')}|{final}".encode()
         ).hexdigest()[:20]
         cache_fp = cache_dir / f"judge_{key}.json" if cache_dir else None
 

@@ -1,0 +1,589 @@
+[
+ {
+  "id": "ch_resume_email",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find my resume and email it to Marcus Lee."
+   }
+  ],
+  "catalog": [
+   "files.search",
+   "mail.send",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "files.recent",
+      "files.list_dir"
+     ]
+    },
+    {
+     "name": "mail.send",
+     "args": {
+      "to": "Marcus"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_itinerary_move",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find the flight itinerary in my Downloads and move it into Documents."
+   }
+  ],
+  "catalog": [
+   "files.search",
+   "files.move"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "files.recent",
+      "files.list_dir"
+     ]
+    },
+    {
+     "name": "files.move",
+     "args": {
+      "src": "*",
+      "dest": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_offsite_reply",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Check the email from Marcus about the offsite and reply that the plan works for me."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "mail.reply"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "mail.reply",
+     "args": {
+      "message_id": "*",
+      "body": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_forward_itinerary",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Forward the flight confirmation email to Dad."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "mail.forward",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "mail.forward",
+     "args": {
+      "message_id": "*",
+      "to": "Dad"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_sync_to4",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Push my sync with Alex to 4pm."
+   }
+  ],
+  "catalog": [
+   "calendar.list_events",
+   "calendar.update_event"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "calendar.list_events",
+     "args": {}
+    },
+    {
+     "name": "calendar.update_event",
+     "args": {
+      "event_id": "*",
+      "new_start": "16:00"
+     },
+     "arg_match": {
+      "new_start": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_respond_invite",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Accept the invite for the team standup."
+   }
+  ],
+  "catalog": [
+   "calendar.list_events",
+   "calendar.respond_to_invite"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "calendar.list_events",
+     "args": {}
+    },
+    {
+     "name": "calendar.respond_to_invite",
+     "args": {
+      "event_id": "*",
+      "response": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_free_slot_book",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find a free hour tomorrow afternoon and book a dentist appointment then."
+   }
+  ],
+  "catalog": [
+   "calendar.find_free_slots",
+   "calendar.create_event"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "calendar.find_free_slots",
+     "args": {
+      "date": "*"
+     }
+    },
+    {
+     "name": "calendar.create_event",
+     "args": {
+      "title": "*",
+      "start": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_text_priya_battery",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Text Priya my current battery percentage."
+   }
+  ],
+  "catalog": [
+   "system.get_battery",
+   "messages.send",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "system.get_battery",
+     "args": {}
+    },
+    {
+     "name": "messages.send",
+     "args": {
+      "recipient": "Priya",
+      "body": "*"
+     },
+     "arg_match": {
+      "recipient": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_unread_mark",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Check my unread emails and mark the one from Daisy as read."
+   }
+  ],
+  "catalog": [
+   "mail.list_unread",
+   "mail.mark_read"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.list_unread",
+     "args": {},
+     "any_of": [
+      "mail.search"
+     ]
+    },
+    {
+     "name": "mail.mark_read",
+     "args": {
+      "message_id": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_remind_lunch",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find the lunch email from Daisy and set a reminder about it for tomorrow morning."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "reminders.create"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "reminders.create",
+     "args": {
+      "text": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_screenshot_msg",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Take a screenshot and send it to Marcus."
+   }
+  ],
+  "catalog": [
+   "screen.screenshot",
+   "messages.send_attachment",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "screen.screenshot",
+     "args": {}
+    },
+    {
+     "name": "messages.send_attachment",
+     "args": {
+      "recipient": "Marcus",
+      "file_path": "*"
+     },
+     "arg_match": {
+      "recipient": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_volume_then_play",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Set the volume to 25 and put on some jazz."
+   }
+  ],
+  "catalog": [
+   "system.set_volume",
+   "music.play"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "system.set_volume",
+     "args": {
+      "level": 25
+     },
+     "arg_match": {
+      "level": "normalized"
+     }
+    },
+    {
+     "name": "music.play",
+     "args": {
+      "query": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_compress_send",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Zip the vacation photos folder and email the archive to Priya."
+   }
+  ],
+  "catalog": [
+   "files.compress",
+   "mail.send",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.compress",
+     "args": {
+      "paths": "*",
+      "dest": "*"
+     }
+    },
+    {
+     "name": "mail.send",
+     "args": {
+      "to": "Priya"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  },
+  "notes": "held_out tool in a chain"
+ },
+ {
+  "id": "ch_contact_create_text",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Save Jamie's number 555-0177 to my contacts, then text them that it was great meeting."
+   }
+  ],
+  "catalog": [
+   "contacts.create",
+   "messages.send"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "contacts.create",
+     "args": {
+      "name": "*",
+      "phone": "*"
+     }
+    },
+    {
+     "name": "messages.send",
+     "args": {
+      "recipient": "*",
+      "body": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_rename_open",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Rename screenshot_mon.png to standup_notes.png and then open it."
+   }
+  ],
+  "catalog": [
+   "files.rename",
+   "files.open"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.rename",
+     "args": {
+      "path": "*",
+      "new_name": "*"
+     }
+    },
+    {
+     "name": "files.open",
+     "args": {
+      "path": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_dnd_reminder",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Turn on do not disturb and set a reminder to turn it back off at 6pm."
+   }
+  ],
+  "catalog": [
+   "system.toggle_dnd",
+   "reminders.create"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "system.toggle_dnd",
+     "args": {
+      "enabled": true
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    },
+    {
+     "name": "reminders.create",
+     "args": {
+      "text": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "ch_facetime_after_text",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Text Dad that I'm calling in 5 minutes, then FaceTime him."
+   }
+  ],
+  "catalog": [
+   "messages.send",
+   "calls.facetime",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "messages.send",
+     "args": {
+      "recipient": "Dad",
+      "body": "*"
+     },
+     "arg_match": {
+      "recipient": "contact"
+     }
+    },
+    {
+     "name": "calls.facetime",
+     "args": {
+      "contact": "Dad"
+     },
+     "arg_match": {
+      "contact": "contact"
+     }
+    }
+   ]
+  }
+ }
+]

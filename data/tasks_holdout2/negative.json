@@ -1,0 +1,226 @@
+[
+ {
+  "id": "n2_thanks",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Nice, that worked. You're the best!"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_pi",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What are the first five digits of pi?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_byte",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "How many bits are in a byte?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_coffee_poem",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Write a two-line poem about coffee."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_turing",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Who was Alan Turing?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_tip",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's a 20% tip on $64?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_cactus",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's the plural of 'cactus'?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_riddle",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Tell me a riddle."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_hex",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What color is hex #FF0000?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_gnocchi",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "How do you pronounce 'gnocchi'?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_moon",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What year did humans first land on the moon?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_tabs",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Tabs or spaces?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_hey",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "hey hey"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "n2_celsius",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Convert 20 degrees Celsius to Fahrenheit."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ }
+]

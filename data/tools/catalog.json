@@ -1,2710 +1,2742 @@
 {
-  "version": 1,
-  "generated_at": "2026-06-09T00:12:17.062Z",
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.list_events",
-        "description": "List calendar events, optionally filtered by date or text query.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "date": {
-              "type": "string",
-              "description": "Day to list, e.g. '2026-06-08' or 'today'."
-            },
-            "query": {
-              "type": "string",
-              "description": "Optional text to match in event titles."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.get_event",
-        "description": "Get full details of a single calendar event by id.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "event_id": {
-              "type": "string",
-              "description": "Id of the event."
-            }
-          },
-          "required": [
-            "event_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.find_free_slots",
-        "description": "Find free/busy availability — 'am I free at 3?'.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "date": {
-              "type": "string",
-              "description": "Day to check."
-            },
-            "duration_minutes": {
-              "type": "integer",
-              "description": "Desired slot length."
-            },
-            "start_after": {
-              "type": "string",
-              "description": "Earliest time to consider."
-            },
-            "end_before": {
-              "type": "string",
-              "description": "Latest time to consider."
-            }
-          },
-          "required": [
-            "date"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.list_calendars",
-        "description": "List the available calendars.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.create_event",
-        "description": "Create a new calendar event.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "description": "Event title."
-            },
-            "start": {
-              "type": "string",
-              "description": "Start time, ISO or natural ('15:30')."
-            },
-            "end": {
-              "type": "string",
-              "description": "End time."
-            },
-            "attendees": {
-              "type": "array",
-              "description": "List of attendee emails."
-            }
-          },
-          "required": [
-            "title",
-            "start"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.create_recurring_event",
-        "description": "Create a recurring calendar event.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "description": "Event title."
-            },
-            "start": {
-              "type": "string",
-              "description": "First occurrence start time."
-            },
-            "end": {
-              "type": "string",
-              "description": "First occurrence end time."
-            },
-            "recurrence": {
-              "type": "string",
-              "description": "Recurrence frequency.",
-              "enum": [
-                "daily",
-                "weekly",
-                "monthly",
-                "yearly"
-              ]
-            },
-            "until": {
-              "type": "string",
-              "description": "End date for the recurrence."
-            }
-          },
-          "required": [
-            "title",
-            "start",
-            "recurrence"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": false,
-        "distractor": false,
-        "held_out": true
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.update_event",
-        "description": "Update an existing calendar event by id.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "event_id": {
-              "type": "string",
-              "description": "Id of the event to update."
-            },
-            "new_start": {
-              "type": "string",
-              "description": "New start time."
-            },
-            "new_end": {
-              "type": "string",
-              "description": "New end time."
-            },
-            "new_title": {
-              "type": "string",
-              "description": "New title."
-            }
-          },
-          "required": [
-            "event_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.respond_to_invite",
-        "description": "Respond to a calendar invitation.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "event_id": {
-              "type": "string",
-              "description": "Id of the invite."
-            },
-            "response": {
-              "type": "string",
-              "description": "Your response.",
-              "enum": [
-                "accept",
-                "decline",
-                "tentative"
-              ]
-            }
-          },
-          "required": [
-            "event_id",
-            "response"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calendar.delete_event",
-        "description": "Delete a calendar event by id.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "event_id": {
-              "type": "string",
-              "description": "Id of the event to delete."
-            }
-          },
-          "required": [
-            "event_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calendar",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.search",
-        "description": "Search the mailbox for messages.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Search text."
-            },
-            "folder": {
-              "type": "string",
-              "description": "Folder to search, e.g. 'inbox'."
-            }
-          },
-          "required": [
-            "query"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.read_message",
-        "description": "Read the full body of a specific email by id.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message."
-            }
-          },
-          "required": [
-            "message_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.list_unread",
-        "description": "List unread messages.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "folder": {
-              "type": "string",
-              "description": "Folder to scope to."
-            },
-            "limit": {
-              "type": "integer",
-              "description": "Max messages to return."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.list_folders",
-        "description": "List mailboxes / folders.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.send",
-        "description": "Send an email immediately.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "to": {
-              "type": "array",
-              "description": "Recipient email addresses."
-            },
-            "subject": {
-              "type": "string",
-              "description": "Subject line."
-            },
-            "body": {
-              "type": "string",
-              "description": "Message body."
-            }
-          },
-          "required": [
-            "to"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.create_draft",
-        "description": "Create an email draft without sending.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "to": {
-              "type": "array",
-              "description": "Recipient email addresses."
-            },
-            "subject": {
-              "type": "string",
-              "description": "Subject line."
-            },
-            "body": {
-              "type": "string",
-              "description": "Message body."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": true
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.reply",
-        "description": "Reply to an email thread.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message to reply to."
-            },
-            "body": {
-              "type": "string",
-              "description": "Reply body."
-            }
-          },
-          "required": [
-            "message_id",
-            "body"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.forward",
-        "description": "Forward an email to other recipients.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message to forward."
-            },
-            "to": {
-              "type": "array",
-              "description": "Recipient email addresses."
-            },
-            "body": {
-              "type": "string",
-              "description": "Optional note to prepend."
-            }
-          },
-          "required": [
-            "message_id",
-            "to"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.mark_read",
-        "description": "Mark a message read or unread.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message."
-            },
-            "read": {
-              "type": "boolean",
-              "description": "True to mark read, false for unread."
-            }
-          },
-          "required": [
-            "message_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.move_to_folder",
-        "description": "Move a message into a mailbox/folder.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message."
-            },
-            "folder": {
-              "type": "string",
-              "description": "Destination folder."
-            }
-          },
-          "required": [
-            "message_id",
-            "folder"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "mail.delete",
-        "description": "Move an email to the trash.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message to delete."
-            }
-          },
-          "required": [
-            "message_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "mail",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.send",
-        "description": "Send an iMessage/SMS to a recipient.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "recipient": {
-              "type": "string",
-              "description": "Contact name, phone number, or email to send to."
-            },
-            "body": {
-              "type": "string",
-              "description": "Message text."
-            }
-          },
-          "required": [
-            "recipient",
-            "body"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.read_thread",
-        "description": "Read the messages in a conversation.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact": {
-              "type": "string",
-              "description": "Contact or thread to read."
-            },
-            "limit": {
-              "type": "integer",
-              "description": "Max messages to return."
-            }
-          },
-          "required": [
-            "contact"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.list_unread",
-        "description": "List unread iMessage/SMS conversations.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "limit": {
-              "type": "integer",
-              "description": "Max conversations to return."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.search",
-        "description": "Search message history by text or contact.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Search text."
-            },
-            "contact": {
-              "type": "string",
-              "description": "Restrict to a specific contact."
-            }
-          },
-          "required": [
-            "query"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.reply",
-        "description": "Reply within an existing conversation.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact": {
-              "type": "string",
-              "description": "Contact or thread to reply in."
-            },
-            "body": {
-              "type": "string",
-              "description": "Reply text."
-            }
-          },
-          "required": [
-            "contact",
-            "body"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.send_attachment",
-        "description": "Send an image or file via Messages.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "recipient": {
-              "type": "string",
-              "description": "Contact to send to."
-            },
-            "file_path": {
-              "type": "string",
-              "description": "Path to the file to attach."
-            },
-            "body": {
-              "type": "string",
-              "description": "Optional accompanying text."
-            }
-          },
-          "required": [
-            "recipient",
-            "file_path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.react",
-        "description": "Add a tapback reaction to a message.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "message_id": {
-              "type": "string",
-              "description": "Id of the message to react to."
-            },
-            "reaction": {
-              "type": "string",
-              "description": "Tapback type.",
-              "enum": [
-                "love",
-                "like",
-                "dislike",
-                "laugh",
-                "emphasize",
-                "question"
-              ]
-            }
-          },
-          "required": [
-            "message_id",
-            "reaction"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "messages.mark_read",
-        "description": "Mark a conversation as read.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact": {
-              "type": "string",
-              "description": "Contact or thread to mark read."
-            }
-          },
-          "required": [
-            "contact"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "messages",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "contacts.find",
-        "description": "Look up a contact by name.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Name to search for."
-            }
-          },
-          "required": [
-            "name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "contacts",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "contacts.get_details",
-        "description": "Get the full contact card by id or name.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact_id": {
-              "type": "string",
-              "description": "Id or name of the contact."
-            }
-          },
-          "required": [
-            "contact_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "contacts",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "contacts.list_groups",
-        "description": "List contact groups.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "contacts",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "contacts.create",
-        "description": "Create a new contact.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Full name."
-            },
-            "email": {
-              "type": "string",
-              "description": "Email address."
-            },
-            "phone": {
-              "type": "string",
-              "description": "Phone number."
-            }
-          },
-          "required": [
-            "name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "contacts",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "contacts.update",
-        "description": "Edit an existing contact.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact_id": {
-              "type": "string",
-              "description": "Id of the contact."
-            },
-            "name": {
-              "type": "string",
-              "description": "Updated name."
-            },
-            "email": {
-              "type": "string",
-              "description": "Updated email."
-            },
-            "phone": {
-              "type": "string",
-              "description": "Updated phone."
-            }
-          },
-          "required": [
-            "contact_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "contacts",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "contacts.delete",
-        "description": "Delete a contact.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact_id": {
-              "type": "string",
-              "description": "Id of the contact to delete."
-            }
-          },
-          "required": [
-            "contact_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "contacts",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.search",
-        "description": "Search files by name or content.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Search text."
-            },
-            "path": {
-              "type": "string",
-              "description": "Directory to scope the search."
-            }
-          },
-          "required": [
-            "query"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.list_dir",
-        "description": "List the contents of a folder.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Directory path."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.read",
-        "description": "Read the contents of a file.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Absolute path to the file."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.get_info",
-        "description": "Get a file's size, dates, and metadata.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Path to the file."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.recent",
-        "description": "List recently used files.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "limit": {
-              "type": "integer",
-              "description": "Max files to return."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.storage_info",
-        "description": "Report free disk space.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Volume or path to check."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.create_folder",
-        "description": "Create a new directory.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Path of the folder to create."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.copy",
-        "description": "Copy a file to a new location.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "src": {
-              "type": "string",
-              "description": "Source path."
-            },
-            "dest": {
-              "type": "string",
-              "description": "Destination path."
-            }
-          },
-          "required": [
-            "src",
-            "dest"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.move",
-        "description": "Move a file to a new location.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "src": {
-              "type": "string",
-              "description": "Source path."
-            },
-            "dest": {
-              "type": "string",
-              "description": "Destination path."
-            }
-          },
-          "required": [
-            "src",
-            "dest"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.rename",
-        "description": "Rename a file in place.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Current path."
-            },
-            "new_name": {
-              "type": "string",
-              "description": "New file name."
-            }
-          },
-          "required": [
-            "path",
-            "new_name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.open",
-        "description": "Open a file in its default app.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Path to the file."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.compress",
-        "description": "Compress files into a zip archive (or unzip one).",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "paths": {
-              "type": "array",
-              "description": "Files/folders to compress."
-            },
-            "dest": {
-              "type": "string",
-              "description": "Destination archive path."
-            }
-          },
-          "required": [
-            "paths",
-            "dest"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": true
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.trash",
-        "description": "Move a file to the Trash (recoverable).",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Path to move to Trash."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "files.delete",
-        "description": "Permanently delete a file.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "Path to delete."
-            }
-          },
-          "required": [
-            "path"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "files",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.get_battery",
-        "description": "Get current battery percentage and charging state.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.get_volume",
-        "description": "Read the current output volume.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.set_volume",
-        "description": "Set the system output volume.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "level": {
-              "type": "integer",
-              "description": "Volume 0–100."
-            }
-          },
-          "required": [
-            "level"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.set_brightness",
-        "description": "Set display brightness — 'dim to 40%'.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "level": {
-              "type": "integer",
-              "description": "Brightness 0–100."
-            }
-          },
-          "required": [
-            "level"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.toggle_dark_mode",
-        "description": "Switch between light and dark appearance.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "True for dark mode."
-            }
-          },
-          "required": [
-            "enabled"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.toggle_dnd",
-        "description": "Turn Do Not Disturb on or off.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "True to enable DND."
-            }
-          },
-          "required": [
-            "enabled"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.set_focus_mode",
-        "description": "Set the active Focus mode.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "mode": {
-              "type": "string",
-              "description": "Focus to activate.",
-              "enum": [
-                "work",
-                "personal",
-                "sleep",
-                "do_not_disturb",
-                "off"
-              ]
-            }
-          },
-          "required": [
-            "mode"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.toggle_wifi",
-        "description": "Turn Wi-Fi on or off.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "True to enable Wi-Fi."
-            }
-          },
-          "required": [
-            "enabled"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.toggle_bluetooth",
-        "description": "Turn Bluetooth on or off.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "True to enable Bluetooth."
-            }
-          },
-          "required": [
-            "enabled"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.caffeinate",
-        "description": "Keep the Mac awake / prevent sleep.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "True to keep awake."
-            },
-            "duration_minutes": {
-              "type": "integer",
-              "description": "Optional auto-expire after N minutes."
-            }
-          },
-          "required": [
-            "enabled"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.lock_screen",
-        "description": "Lock the screen.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.sleep",
-        "description": "Put the Mac to sleep.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "system.restart_or_shutdown",
-        "description": "Restart or shut down the Mac (destructive).",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "action": {
-              "type": "string",
-              "description": "What to do.",
-              "enum": [
-                "restart",
-                "shutdown"
-              ]
-            },
-            "confirm": {
-              "type": "boolean",
-              "description": "Must be true to proceed."
-            }
-          },
-          "required": [
-            "action"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "system",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.now_playing",
-        "description": "Get the currently playing track.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.search",
-        "description": "Search for a song, artist, or album.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Search text."
-            }
-          },
-          "required": [
-            "query"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.play",
-        "description": "Play or resume playback.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Optional song/artist to play."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.pause",
-        "description": "Pause playback.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.next_track",
-        "description": "Skip to the next track.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.previous_track",
-        "description": "Go to the previous track.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.play_playlist",
-        "description": "Play a named playlist or mood.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Playlist or mood name."
-            }
-          },
-          "required": [
-            "name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.play_podcast",
-        "description": "Play a podcast episode.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Show or episode to play."
-            }
-          },
-          "required": [
-            "query"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": true
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "music.set_volume",
-        "description": "Set the media playback volume.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "level": {
-              "type": "integer",
-              "description": "Volume 0–100."
-            }
-          },
-          "required": [
-            "level"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "music",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "web.search",
-        "description": "Search the web for current information (use instead of guessing).",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "query": {
-              "type": "string",
-              "description": "Search query."
-            }
-          },
-          "required": [
-            "query"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "web",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "web.fetch_url",
-        "description": "Fetch and read the contents of a web page.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "url": {
-              "type": "string",
-              "description": "URL to fetch."
-            }
-          },
-          "required": [
-            "url"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "web",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "web.open_url",
-        "description": "Open a URL in the default browser.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "url": {
-              "type": "string",
-              "description": "URL to open."
-            }
-          },
-          "required": [
-            "url"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "web",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "apps.list_running",
-        "description": "List currently running applications.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "apps",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "apps.open",
-        "description": "Launch an application.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "App name to open."
-            }
-          },
-          "required": [
-            "name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "apps",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "apps.quit",
-        "description": "Quit an application.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "App name to quit."
-            }
-          },
-          "required": [
-            "name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "apps",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "apps.switch_to",
-        "description": "Bring an application to the front.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "App name to focus."
-            }
-          },
-          "required": [
-            "name"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "apps",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "clipboard.get",
-        "description": "Read the current clipboard contents.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "clipboard",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "clipboard.history",
-        "description": "List recent clipboard items.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "limit": {
-              "type": "integer",
-              "description": "Max items to return."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "clipboard",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "clipboard.set",
-        "description": "Write text to the clipboard.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "text": {
-              "type": "string",
-              "description": "Text to copy."
-            }
-          },
-          "required": [
-            "text"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "clipboard",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "screen.ocr",
-        "description": "Read text currently visible on screen.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "screen",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "screen.screenshot",
-        "description": "Capture the whole screen.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "save_path": {
-              "type": "string",
-              "description": "Where to save the image."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "screen",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "screen.capture_region",
-        "description": "Capture a selected region of the screen.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "x": {
-              "type": "integer",
-              "description": "Left coordinate."
-            },
-            "y": {
-              "type": "integer",
-              "description": "Top coordinate."
-            },
-            "width": {
-              "type": "integer",
-              "description": "Region width."
-            },
-            "height": {
-              "type": "integer",
-              "description": "Region height."
-            },
-            "save_path": {
-              "type": "string",
-              "description": "Where to save the image."
-            }
-          },
-          "required": [
-            "x",
-            "y",
-            "width",
-            "height"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "screen",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "screen.start_recording",
-        "description": "Start a screen recording.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "save_path": {
-              "type": "string",
-              "description": "Where to save the recording."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "screen",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "weather.current",
-        "description": "Get current weather conditions.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": {
-              "type": "string",
-              "description": "Location (defaults to current)."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "weather",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "weather.forecast",
-        "description": "Get the upcoming weather forecast.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": {
-              "type": "string",
-              "description": "Location (defaults to current)."
-            },
-            "days": {
-              "type": "integer",
-              "description": "Number of days to forecast."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "weather",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "network.wifi_status",
-        "description": "Get the current Wi-Fi connection status.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "network",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "network.list_wifi",
-        "description": "List available Wi-Fi networks.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "network",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "network.get_ip",
-        "description": "Get the local or public IP address.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "scope": {
-              "type": "string",
-              "description": "Which IP to return.",
-              "enum": [
-                "local",
-                "public"
-              ]
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "network",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "network.connect_wifi",
-        "description": "Join a Wi-Fi network.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "ssid": {
-              "type": "string",
-              "description": "Network name."
-            },
-            "password": {
-              "type": "string",
-              "description": "Network password."
-            }
-          },
-          "required": [
-            "ssid"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "network",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "devices.list_bluetooth",
-        "description": "List paired Bluetooth devices.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "devices",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "devices.connect_bluetooth",
-        "description": "Connect a Bluetooth device.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "device": {
-              "type": "string",
-              "description": "Device name to connect."
-            }
-          },
-          "required": [
-            "device"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "devices",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "devices.airdrop",
-        "description": "AirDrop a file to a nearby device.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "file_path": {
-              "type": "string",
-              "description": "Path to the file to send."
-            },
-            "recipient": {
-              "type": "string",
-              "description": "Device or contact to send to."
-            }
-          },
-          "required": [
-            "file_path",
-            "recipient"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "devices",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calls.facetime",
-        "description": "Start a FaceTime call.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact": {
-              "type": "string",
-              "description": "Contact name or number."
-            }
-          },
-          "required": [
-            "contact"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calls",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "calls.phone",
-        "description": "Place a phone call to a contact.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "contact": {
-              "type": "string",
-              "description": "Contact name or number."
-            }
-          },
-          "required": [
-            "contact"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "calls",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "reminders.list",
-        "description": "List reminders.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "list_name": {
-              "type": "string",
-              "description": "Reminder list to read."
-            },
-            "include_completed": {
-              "type": "boolean",
-              "description": "Include completed items."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "reminders",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "reminders.list_lists",
-        "description": "List the available reminder lists.",
-        "parameters": {
-          "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "reminders",
-        "read_only": true,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "reminders.create",
-        "description": "Create a reminder/to-do item.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "text": {
-              "type": "string",
-              "description": "Reminder text."
-            },
-            "due": {
-              "type": "string",
-              "description": "Due date/time."
-            },
-            "list_name": {
-              "type": "string",
-              "description": "List to add it to."
-            }
-          },
-          "required": [
-            "text"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "reminders",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "reminders.complete",
-        "description": "Mark a reminder as done.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "reminder_id": {
-              "type": "string",
-              "description": "Id of the reminder."
-            }
-          },
-          "required": [
-            "reminder_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "reminders",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "reminders.update",
-        "description": "Edit an existing reminder.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "reminder_id": {
-              "type": "string",
-              "description": "Id of the reminder."
-            },
-            "text": {
-              "type": "string",
-              "description": "Updated text."
-            },
-            "due": {
-              "type": "string",
-              "description": "Updated due date/time."
-            }
-          },
-          "required": [
-            "reminder_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "reminders",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "reminders.delete",
-        "description": "Delete a reminder.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "reminder_id": {
-              "type": "string",
-              "description": "Id of the reminder to delete."
-            }
-          },
-          "required": [
-            "reminder_id"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "reminders",
-        "read_only": false,
-        "distractor": false,
-        "held_out": false
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "shell.run_command",
-        "description": "Execute an arbitrary terminal command (powerful and dangerous).",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "command": {
-              "type": "string",
-              "description": "Shell command to run."
-            }
-          },
-          "required": [
-            "command"
-          ]
-        }
-      },
-      "meta": {
-        "domain": "shell",
-        "read_only": false,
-        "distractor": false,
-        "held_out": true
-      }
-    },
-    {
-      "type": "function",
-      "function": {
-        "name": "notes.create",
-        "description": "Create a note in the Notes app.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "description": "Note title."
-            },
-            "body": {
-              "type": "string",
-              "description": "Note body."
-            }
-          },
-          "required": []
-        }
-      },
-      "meta": {
-        "domain": "notes",
-        "read_only": false,
-        "distractor": true,
-        "held_out": false
-      }
+ "version": 1,
+ "generated_at": "2026-06-09T00:12:17.062Z",
+ "tools": [
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.list_events",
+    "description": "List calendar events, optionally filtered by date or text query.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "date": {
+       "type": "string",
+       "description": "Day to list, e.g. '2026-06-08' or 'today'."
+      },
+      "query": {
+       "type": "string",
+       "description": "Optional text to match in event titles."
+      }
+     },
+     "required": []
     }
-  ]
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.get_event",
+    "description": "Get full details of a single calendar event by id.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "description": "Id of the event."
+      }
+     },
+     "required": [
+      "event_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.find_free_slots",
+    "description": "Find free/busy availability \u2014 'am I free at 3?'.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "date": {
+       "type": "string",
+       "description": "Day to check."
+      },
+      "duration_minutes": {
+       "type": "integer",
+       "description": "Desired slot length."
+      },
+      "start_after": {
+       "type": "string",
+       "description": "Earliest time to consider."
+      },
+      "end_before": {
+       "type": "string",
+       "description": "Latest time to consider."
+      }
+     },
+     "required": [
+      "date"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.list_calendars",
+    "description": "List the available calendars.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.create_event",
+    "description": "Create a new calendar event.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string",
+       "description": "Event title."
+      },
+      "start": {
+       "type": "string",
+       "description": "Start time, ISO or natural ('15:30')."
+      },
+      "end": {
+       "type": "string",
+       "description": "End time."
+      },
+      "attendees": {
+       "type": "array",
+       "description": "List of attendee emails."
+      }
+     },
+     "required": [
+      "title",
+      "start"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.create_recurring_event",
+    "description": "Create a recurring calendar event.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string",
+       "description": "Event title."
+      },
+      "start": {
+       "type": "string",
+       "description": "First occurrence start time."
+      },
+      "end": {
+       "type": "string",
+       "description": "First occurrence end time."
+      },
+      "recurrence": {
+       "type": "string",
+       "description": "Recurrence frequency.",
+       "enum": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+       ]
+      },
+      "until": {
+       "type": "string",
+       "description": "End date for the recurrence."
+      }
+     },
+     "required": [
+      "title",
+      "start",
+      "recurrence"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": false,
+    "distractor": false,
+    "held_out": true
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.update_event",
+    "description": "Update an existing calendar event by id.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "description": "Id of the event to update."
+      },
+      "new_start": {
+       "type": "string",
+       "description": "New start time."
+      },
+      "new_end": {
+       "type": "string",
+       "description": "New end time."
+      },
+      "new_title": {
+       "type": "string",
+       "description": "New title."
+      }
+     },
+     "required": [
+      "event_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.respond_to_invite",
+    "description": "Respond to a calendar invitation.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "description": "Id of the invite."
+      },
+      "response": {
+       "type": "string",
+       "description": "Your response.",
+       "enum": [
+        "accept",
+        "decline",
+        "tentative"
+       ]
+      }
+     },
+     "required": [
+      "event_id",
+      "response"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calendar.delete_event",
+    "description": "Delete a calendar event by id.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "description": "Id of the event to delete."
+      }
+     },
+     "required": [
+      "event_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calendar",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.search",
+    "description": "Search the mailbox for messages.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search text."
+      },
+      "folder": {
+       "type": "string",
+       "description": "Folder to search, e.g. 'inbox'."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.read_message",
+    "description": "Read the full body of a specific email by id.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message."
+      }
+     },
+     "required": [
+      "message_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.list_unread",
+    "description": "List unread messages.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "folder": {
+       "type": "string",
+       "description": "Folder to scope to."
+      },
+      "limit": {
+       "type": "integer",
+       "description": "Max messages to return."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.list_folders",
+    "description": "List mailboxes / folders.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.send",
+    "description": "Send an email immediately.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "to": {
+       "type": "array",
+       "description": "Recipient email addresses."
+      },
+      "subject": {
+       "type": "string",
+       "description": "Subject line."
+      },
+      "body": {
+       "type": "string",
+       "description": "Message body."
+      }
+     },
+     "required": [
+      "to"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.create_draft",
+    "description": "Create an email draft without sending.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "to": {
+       "type": "array",
+       "description": "Recipient email addresses."
+      },
+      "subject": {
+       "type": "string",
+       "description": "Subject line."
+      },
+      "body": {
+       "type": "string",
+       "description": "Message body."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": true
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.reply",
+    "description": "Reply to an email thread.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message to reply to."
+      },
+      "body": {
+       "type": "string",
+       "description": "Reply body."
+      }
+     },
+     "required": [
+      "message_id",
+      "body"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.forward",
+    "description": "Forward an email to other recipients.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message to forward."
+      },
+      "to": {
+       "type": "array",
+       "description": "Recipient email addresses."
+      },
+      "body": {
+       "type": "string",
+       "description": "Optional note to prepend."
+      }
+     },
+     "required": [
+      "message_id",
+      "to"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.mark_read",
+    "description": "Mark a message read or unread.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message."
+      },
+      "read": {
+       "type": "boolean",
+       "description": "True to mark read, false for unread."
+      }
+     },
+     "required": [
+      "message_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.move_to_folder",
+    "description": "Move a message into a mailbox/folder.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message."
+      },
+      "folder": {
+       "type": "string",
+       "description": "Destination folder."
+      }
+     },
+     "required": [
+      "message_id",
+      "folder"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "mail.delete",
+    "description": "Move an email to the trash.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message to delete."
+      }
+     },
+     "required": [
+      "message_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "mail",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.send",
+    "description": "Send an iMessage/SMS to a recipient.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "recipient": {
+       "type": "string",
+       "description": "Contact name, phone number, or email to send to."
+      },
+      "body": {
+       "type": "string",
+       "description": "Message text."
+      }
+     },
+     "required": [
+      "recipient",
+      "body"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.read_thread",
+    "description": "Read the messages in a conversation.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact": {
+       "type": "string",
+       "description": "Contact or thread to read."
+      },
+      "limit": {
+       "type": "integer",
+       "description": "Max messages to return."
+      }
+     },
+     "required": [
+      "contact"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.list_unread",
+    "description": "List unread iMessage/SMS conversations.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "limit": {
+       "type": "integer",
+       "description": "Max conversations to return."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.search",
+    "description": "Search message history by text or contact.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search text."
+      },
+      "contact": {
+       "type": "string",
+       "description": "Restrict to a specific contact."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.reply",
+    "description": "Reply within an existing conversation.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact": {
+       "type": "string",
+       "description": "Contact or thread to reply in."
+      },
+      "body": {
+       "type": "string",
+       "description": "Reply text."
+      }
+     },
+     "required": [
+      "contact",
+      "body"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.send_attachment",
+    "description": "Send an image or file via Messages.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "recipient": {
+       "type": "string",
+       "description": "Contact to send to."
+      },
+      "file_path": {
+       "type": "string",
+       "description": "Path to the file to attach."
+      },
+      "body": {
+       "type": "string",
+       "description": "Optional accompanying text."
+      }
+     },
+     "required": [
+      "recipient",
+      "file_path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.react",
+    "description": "Add a tapback reaction to a message.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "message_id": {
+       "type": "string",
+       "description": "Id of the message to react to."
+      },
+      "reaction": {
+       "type": "string",
+       "description": "Tapback type.",
+       "enum": [
+        "love",
+        "like",
+        "dislike",
+        "laugh",
+        "emphasize",
+        "question"
+       ]
+      }
+     },
+     "required": [
+      "message_id",
+      "reaction"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "messages.mark_read",
+    "description": "Mark a conversation as read.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact": {
+       "type": "string",
+       "description": "Contact or thread to mark read."
+      }
+     },
+     "required": [
+      "contact"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "messages",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "contacts.find",
+    "description": "Look up a contact by name.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "Name to search for."
+      }
+     },
+     "required": [
+      "name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "contacts",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "contacts.get_details",
+    "description": "Get the full contact card by id or name.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact_id": {
+       "type": "string",
+       "description": "Id or name of the contact."
+      }
+     },
+     "required": [
+      "contact_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "contacts",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "contacts.list_groups",
+    "description": "List contact groups.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "contacts",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "contacts.create",
+    "description": "Create a new contact.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "Full name."
+      },
+      "email": {
+       "type": "string",
+       "description": "Email address."
+      },
+      "phone": {
+       "type": "string",
+       "description": "Phone number."
+      }
+     },
+     "required": [
+      "name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "contacts",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "contacts.update",
+    "description": "Edit an existing contact.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact_id": {
+       "type": "string",
+       "description": "Id of the contact."
+      },
+      "name": {
+       "type": "string",
+       "description": "Updated name."
+      },
+      "email": {
+       "type": "string",
+       "description": "Updated email."
+      },
+      "phone": {
+       "type": "string",
+       "description": "Updated phone."
+      }
+     },
+     "required": [
+      "contact_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "contacts",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "contacts.delete",
+    "description": "Delete a contact.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact_id": {
+       "type": "string",
+       "description": "Id of the contact to delete."
+      }
+     },
+     "required": [
+      "contact_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "contacts",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.search",
+    "description": "Search files by name or content.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search text."
+      },
+      "path": {
+       "type": "string",
+       "description": "Directory to scope the search."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.list_dir",
+    "description": "List the contents of a folder.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Directory path."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.read",
+    "description": "Read the contents of a file.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Absolute path to the file."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.get_info",
+    "description": "Get a file's size, dates, and metadata.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Path to the file."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.recent",
+    "description": "List recently used files.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "limit": {
+       "type": "integer",
+       "description": "Max files to return."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.storage_info",
+    "description": "Report free disk space.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Volume or path to check."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.create_folder",
+    "description": "Create a new directory.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Path of the folder to create."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.copy",
+    "description": "Copy a file to a new location.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "src": {
+       "type": "string",
+       "description": "Source path."
+      },
+      "dest": {
+       "type": "string",
+       "description": "Destination path."
+      }
+     },
+     "required": [
+      "src",
+      "dest"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.move",
+    "description": "Move a file to a new location.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "src": {
+       "type": "string",
+       "description": "Source path."
+      },
+      "dest": {
+       "type": "string",
+       "description": "Destination path."
+      }
+     },
+     "required": [
+      "src",
+      "dest"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.rename",
+    "description": "Rename a file in place.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Current path."
+      },
+      "new_name": {
+       "type": "string",
+       "description": "New file name."
+      }
+     },
+     "required": [
+      "path",
+      "new_name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.open",
+    "description": "Open a file in its default app.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Path to the file."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.compress",
+    "description": "Compress files into a zip archive (or unzip one).",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "paths": {
+       "type": "array",
+       "description": "Files/folders to compress."
+      },
+      "dest": {
+       "type": "string",
+       "description": "Destination archive path."
+      }
+     },
+     "required": [
+      "paths",
+      "dest"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": true
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.trash",
+    "description": "Move a file to the Trash (recoverable).",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Path to move to Trash."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "files.delete",
+    "description": "Permanently delete a file.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Path to delete."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "files",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.get_battery",
+    "description": "Get current battery percentage and charging state.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.get_volume",
+    "description": "Read the current output volume.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.set_volume",
+    "description": "Set the system output volume.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "level": {
+       "type": "integer",
+       "description": "Volume 0\u2013100."
+      }
+     },
+     "required": [
+      "level"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.set_brightness",
+    "description": "Set display brightness \u2014 'dim to 40%'.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "level": {
+       "type": "integer",
+       "description": "Brightness 0\u2013100."
+      }
+     },
+     "required": [
+      "level"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.toggle_dark_mode",
+    "description": "Switch between light and dark appearance.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "enabled": {
+       "type": "boolean",
+       "description": "True for dark mode."
+      }
+     },
+     "required": [
+      "enabled"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.toggle_dnd",
+    "description": "Turn Do Not Disturb on or off.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "enabled": {
+       "type": "boolean",
+       "description": "True to enable DND."
+      }
+     },
+     "required": [
+      "enabled"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.set_focus_mode",
+    "description": "Set the active Focus mode.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "mode": {
+       "type": "string",
+       "description": "Focus to activate.",
+       "enum": [
+        "work",
+        "personal",
+        "sleep",
+        "do_not_disturb",
+        "off"
+       ]
+      }
+     },
+     "required": [
+      "mode"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.toggle_wifi",
+    "description": "Turn Wi-Fi on or off.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "enabled": {
+       "type": "boolean",
+       "description": "True to enable Wi-Fi."
+      }
+     },
+     "required": [
+      "enabled"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.toggle_bluetooth",
+    "description": "Turn Bluetooth on or off.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "enabled": {
+       "type": "boolean",
+       "description": "True to enable Bluetooth."
+      }
+     },
+     "required": [
+      "enabled"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.caffeinate",
+    "description": "Keep the Mac awake / prevent sleep.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "enabled": {
+       "type": "boolean",
+       "description": "True to keep awake."
+      },
+      "duration_minutes": {
+       "type": "integer",
+       "description": "Optional auto-expire after N minutes."
+      }
+     },
+     "required": [
+      "enabled"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.lock_screen",
+    "description": "Lock the screen.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.sleep",
+    "description": "Put the Mac to sleep.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "system.restart_or_shutdown",
+    "description": "Restart or shut down the Mac (destructive).",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "action": {
+       "type": "string",
+       "description": "What to do.",
+       "enum": [
+        "restart",
+        "shutdown"
+       ]
+      },
+      "confirm": {
+       "type": "boolean",
+       "description": "Must be true to proceed."
+      }
+     },
+     "required": [
+      "action"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "system",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.now_playing",
+    "description": "Get the currently playing track.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.search",
+    "description": "Search for a song, artist, or album.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search text."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.play",
+    "description": "Play or resume playback.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Optional song/artist to play."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.pause",
+    "description": "Pause playback.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.next_track",
+    "description": "Skip to the next track.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.previous_track",
+    "description": "Go to the previous track.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.play_playlist",
+    "description": "Play a named playlist or mood.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "Playlist or mood name."
+      }
+     },
+     "required": [
+      "name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.play_podcast",
+    "description": "Play a podcast episode.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Show or episode to play."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": true
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "music.set_volume",
+    "description": "Set the media playback volume.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "level": {
+       "type": "integer",
+       "description": "Volume 0\u2013100."
+      }
+     },
+     "required": [
+      "level"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "music",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "web.search",
+    "description": "Search the web for current information (use instead of guessing).",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search query."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "web",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "web.fetch_url",
+    "description": "Fetch and read the contents of a web page.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "url": {
+       "type": "string",
+       "description": "URL to fetch."
+      }
+     },
+     "required": [
+      "url"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "web",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "web.open_url",
+    "description": "Open a URL in the default browser.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "url": {
+       "type": "string",
+       "description": "URL to open."
+      }
+     },
+     "required": [
+      "url"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "web",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "apps.list_running",
+    "description": "List currently running applications.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "apps",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "apps.open",
+    "description": "Launch an application.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "App name to open."
+      }
+     },
+     "required": [
+      "name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "apps",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "apps.quit",
+    "description": "Quit an application.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "App name to quit."
+      }
+     },
+     "required": [
+      "name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "apps",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "apps.switch_to",
+    "description": "Bring an application to the front.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "App name to focus."
+      }
+     },
+     "required": [
+      "name"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "apps",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "clipboard.get",
+    "description": "Read the current clipboard contents.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "clipboard",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "clipboard.history",
+    "description": "List recent clipboard items.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "limit": {
+       "type": "integer",
+       "description": "Max items to return."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "clipboard",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "clipboard.set",
+    "description": "Write text to the clipboard.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "text": {
+       "type": "string",
+       "description": "Text to copy."
+      }
+     },
+     "required": [
+      "text"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "clipboard",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "screen.ocr",
+    "description": "Read text currently visible on screen.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "screen",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "screen.screenshot",
+    "description": "Capture the whole screen.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "save_path": {
+       "type": "string",
+       "description": "Where to save the image."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "screen",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "screen.capture_region",
+    "description": "Capture a selected region of the screen.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "x": {
+       "type": "integer",
+       "description": "Left coordinate."
+      },
+      "y": {
+       "type": "integer",
+       "description": "Top coordinate."
+      },
+      "width": {
+       "type": "integer",
+       "description": "Region width."
+      },
+      "height": {
+       "type": "integer",
+       "description": "Region height."
+      },
+      "save_path": {
+       "type": "string",
+       "description": "Where to save the image."
+      }
+     },
+     "required": [
+      "x",
+      "y",
+      "width",
+      "height"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "screen",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "screen.start_recording",
+    "description": "Start a screen recording.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "save_path": {
+       "type": "string",
+       "description": "Where to save the recording."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "screen",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "weather.current",
+    "description": "Get current weather conditions.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "location": {
+       "type": "string",
+       "description": "Location (defaults to current)."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "weather",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "weather.forecast",
+    "description": "Get the upcoming weather forecast.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "location": {
+       "type": "string",
+       "description": "Location (defaults to current)."
+      },
+      "days": {
+       "type": "integer",
+       "description": "Number of days to forecast."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "weather",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "network.wifi_status",
+    "description": "Get the current Wi-Fi connection status.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "network",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "network.list_wifi",
+    "description": "List available Wi-Fi networks.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "network",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "network.get_ip",
+    "description": "Get the local or public IP address.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "scope": {
+       "type": "string",
+       "description": "Which IP to return.",
+       "enum": [
+        "local",
+        "public"
+       ]
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "network",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "network.connect_wifi",
+    "description": "Join a Wi-Fi network.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "ssid": {
+       "type": "string",
+       "description": "Network name."
+      },
+      "password": {
+       "type": "string",
+       "description": "Network password."
+      }
+     },
+     "required": [
+      "ssid"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "network",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "devices.list_bluetooth",
+    "description": "List paired Bluetooth devices.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "devices",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "devices.connect_bluetooth",
+    "description": "Connect a Bluetooth device.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "device": {
+       "type": "string",
+       "description": "Device name to connect."
+      }
+     },
+     "required": [
+      "device"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "devices",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "devices.airdrop",
+    "description": "AirDrop a file to a nearby device.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "file_path": {
+       "type": "string",
+       "description": "Path to the file to send."
+      },
+      "recipient": {
+       "type": "string",
+       "description": "Device or contact to send to."
+      }
+     },
+     "required": [
+      "file_path",
+      "recipient"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "devices",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calls.facetime",
+    "description": "Start a FaceTime call.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact": {
+       "type": "string",
+       "description": "Contact name or number."
+      }
+     },
+     "required": [
+      "contact"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calls",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "calls.phone",
+    "description": "Place a phone call to a contact.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "contact": {
+       "type": "string",
+       "description": "Contact name or number."
+      }
+     },
+     "required": [
+      "contact"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "calls",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "reminders.list",
+    "description": "List reminders.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "list_name": {
+       "type": "string",
+       "description": "Reminder list to read."
+      },
+      "include_completed": {
+       "type": "boolean",
+       "description": "Include completed items."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "reminders",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "reminders.list_lists",
+    "description": "List the available reminder lists.",
+    "parameters": {
+     "type": "object",
+     "properties": {},
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "reminders",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "reminders.create",
+    "description": "Create a reminder/to-do item.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "text": {
+       "type": "string",
+       "description": "Reminder text."
+      },
+      "due": {
+       "type": "string",
+       "description": "Due date/time."
+      },
+      "list_name": {
+       "type": "string",
+       "description": "List to add it to."
+      }
+     },
+     "required": [
+      "text"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "reminders",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "reminders.complete",
+    "description": "Mark a reminder as done.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "reminder_id": {
+       "type": "string",
+       "description": "Id of the reminder."
+      }
+     },
+     "required": [
+      "reminder_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "reminders",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "reminders.update",
+    "description": "Edit an existing reminder.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "reminder_id": {
+       "type": "string",
+       "description": "Id of the reminder."
+      },
+      "text": {
+       "type": "string",
+       "description": "Updated text."
+      },
+      "due": {
+       "type": "string",
+       "description": "Updated due date/time."
+      }
+     },
+     "required": [
+      "reminder_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "reminders",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "reminders.delete",
+    "description": "Delete a reminder.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "reminder_id": {
+       "type": "string",
+       "description": "Id of the reminder to delete."
+      }
+     },
+     "required": [
+      "reminder_id"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "reminders",
+    "read_only": false,
+    "distractor": false,
+    "held_out": false
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "shell.run_command",
+    "description": "Execute an arbitrary terminal command (powerful and dangerous).",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "command": {
+       "type": "string",
+       "description": "Shell command to run."
+      }
+     },
+     "required": [
+      "command"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "shell",
+    "read_only": false,
+    "distractor": false,
+    "held_out": true
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "notes.create",
+    "description": "Create a note in the Notes app.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string",
+       "description": "Note title."
+      },
+      "body": {
+       "type": "string",
+       "description": "Note body."
+      }
+     },
+     "required": []
+    }
+   },
+   "meta": {
+    "domain": "notes",
+    "read_only": false,
+    "distractor": true,
+    "held_out": false
+   }
+  },
+  {
+   "function": {
+    "name": "assistant.ask_user",
+    "description": "Ask the user a clarifying question when the request is ambiguous or missing a crucial detail. Shows a multiple-choice prompt; the user can pick an option or type a free-text reply. Use instead of guessing.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "question": {
+       "type": "string",
+       "description": "The clarifying question."
+      },
+      "options": {
+       "type": "array",
+       "description": "2-4 likely answers the user can tap."
+      },
+      "allow_free_text": {
+       "type": "boolean",
+       "description": "Whether a custom reply is allowed."
+      }
+     },
+     "required": [
+      "question"
+     ]
+    }
+   },
+   "meta": {
+    "domain": "assistant",
+    "read_only": true,
+    "distractor": false,
+    "held_out": false
+   }
+  }
+ ]
 }

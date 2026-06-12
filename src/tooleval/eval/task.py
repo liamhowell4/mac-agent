@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 ExpectKind = Literal["tool_call", "no_call", "clarify", "chain"]
-ArgMatchRule = Literal["exact", "normalized", "present", "semantic"]
+ArgMatchRule = Literal["exact", "normalized", "present", "semantic", "contact"]
 
 
 @dataclass
@@ -22,10 +22,14 @@ class ExpectedCall:
     args: dict[str, Any] = field(default_factory=dict)
     # per-field rule; "*" value means any/unchecked. Default to "present" for unlisted keys.
     arg_match: dict[str, ArgMatchRule] = field(default_factory=dict)
+    # Equally-valid alternative tools for this step (e.g. files.list_dir instead of
+    # files.search to discover a file) — grading must not over-specify the method.
+    any_of: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, d: dict) -> ExpectedCall:
-        return cls(name=d["name"], args=d.get("args", {}), arg_match=d.get("arg_match", {}))
+        return cls(name=d["name"], args=d.get("args", {}), arg_match=d.get("arg_match", {}),
+                   any_of=d.get("any_of", []))
 
 
 @dataclass

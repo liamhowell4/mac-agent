@@ -152,7 +152,7 @@ def cmd_matrix(args: argparse.Namespace) -> int:
                 retriever, k = build_retriever(rspec, args.host)
                 runner = Runner(
                     provider, retriever, catalog,
-                    seed=seed, k=k or args.k, constrained=constrained,
+                    seed=seed, k=k or args.k, decoding=decoding,
                     system_prompt=PROMPTS[prompt_label], prompt_label=prompt_label,
                     cache_dir=None if args.no_cache else Path("results/cache"),
                 )

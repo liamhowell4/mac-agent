@@ -1,0 +1,22 @@
+# v3 cross-model wave (2026-06-10 evening): router2 fix for LFM + qwen re-runs under
+# harness v3 so the LFM-vs-qwen comparison stops mixing harness versions.
+models:
+  - {provider: ollama, model: "lfm2.5:8b",
+     decoding: [router2], prompts: [default], retrieval: [passthrough]}
+  - {provider: ollama, model: "qwen3.5:4b-mlx",
+     decoding: [unconstrained], prompts: [default, fewshot]}
+  - {provider: ollama, model: "qwen3.5:9b-mlx",
+     decoding: [unconstrained], prompts: [default], retrieval: [passthrough]}
+retrieval:
+  - {kind: passthrough}
+  - {kind: embedding, embed_model: "hf.co/ChristianAzinn/e5-base-v2-gguf:Q8_0", k: 8,
+     expand_domains: 5}
+decoding: [unconstrained]
+prompts: [default]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42

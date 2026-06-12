@@ -1,0 +1,226 @@
+[
+ {
+  "id": "nh_thanks",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Perfect, thanks so much!"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_joke",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Tell me a joke."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_math",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's 15% of 240?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_spell",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "How do you spell 'necessary'?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_hamlet",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Who wrote Hamlet?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_ram",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What does RAM stand for?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_advice",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Should I learn Python or JavaScript first?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_define",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What does 'ephemeral' mean?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_convert",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Roughly how many cups are in a liter?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_greeting",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Good morning! How's it going?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_haiku",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Write a haiku about Mondays."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_berlin",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "When did the Berlin Wall fall?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_ram_vs_storage",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Explain the difference between RAM and storage in one sentence."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ },
+ {
+  "id": "nh_favorite",
+  "tier": "negative",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's your favorite Mac feature?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "no_call",
+   "calls": []
+  },
+  "notes": "pure no-call"
+ }
+]

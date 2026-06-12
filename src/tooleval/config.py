@@ -51,11 +51,12 @@ _provider_cache: dict[tuple, Any] = {}
 
 def build_provider(spec: dict, host: str, seed: int):
     kind = spec["provider"]
-    key = (kind, spec["model"], host, seed)
+    options = spec.get("options") or {}
+    key = (kind, spec["model"], host, seed, tuple(sorted(options.items())))
     if key in _provider_cache:
         return _provider_cache[key]
     if kind == "ollama":
-        provider = OllamaProvider(spec["model"], host=host, seed=seed)
+        provider = OllamaProvider(spec["model"], host=host, seed=seed, extra_options=options)
     elif kind == "mlx":
         from .providers.mlx import MLXProvider  # noqa: PLC0415 — keeps mlx_lm optional
 
@@ -76,9 +77,11 @@ def build_retriever(spec: dict, host: str) -> tuple[Any, int]:
         return PassthroughRetriever(), 0
     if kind == "embedding":
         embed_model = spec.get("embed_model", "nomic-embed-text")
-        key = ("embedding", embed_model, host)
+        expand = int(spec.get("expand_domains", 0))
+        key = ("embedding", embed_model, host, expand)
         if key not in _retriever_cache:
-            _retriever_cache[key] = EmbeddingRetriever(embed_model, host=host)
+            _retriever_cache[key] = EmbeddingRetriever(
+                embed_model, host=host, expand_domains=expand)
         return _retriever_cache[key], int(spec.get("k", 8))
     raise ValueError(f"unknown retrieval kind: {kind}")
 

@@ -1,0 +1,742 @@
+[
+ {
+  "id": "sh_dnd_on",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Turn on Do Not Disturb."
+   }
+  ],
+  "catalog": [
+   "system.toggle_dnd"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.toggle_dnd",
+     "args": {
+      "enabled": true
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_brightness",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Set screen brightness to 65%."
+   }
+  ],
+  "catalog": [
+   "system.set_brightness"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.set_brightness",
+     "args": {
+      "level": 65
+     },
+     "arg_match": {
+      "level": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_dark_mode",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Switch my Mac to dark mode."
+   }
+  ],
+  "catalog": [
+   "system.toggle_dark_mode"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.toggle_dark_mode",
+     "args": {
+      "enabled": true
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_focus_work",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Put my Mac in work focus."
+   }
+  ],
+  "catalog": [
+   "system.set_focus_mode"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.set_focus_mode",
+     "args": {
+      "mode": "work"
+     },
+     "arg_match": {
+      "mode": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_lock",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Lock my screen, I'm heading out."
+   }
+  ],
+  "catalog": [
+   "system.lock_screen"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.lock_screen",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_battery",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "How much battery do I have left?"
+   }
+  ],
+  "catalog": [
+   "system.get_battery"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.get_battery",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_caffeinate",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Keep my Mac awake for the next hour."
+   }
+  ],
+  "catalog": [
+   "system.caffeinate"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.caffeinate",
+     "args": {
+      "enabled": true
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_wifi_off",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Turn off wifi."
+   }
+  ],
+  "catalog": [
+   "system.toggle_wifi"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.toggle_wifi",
+     "args": {
+      "enabled": false
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_compress",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Zip up my resume into an archive called resume.zip in Documents."
+   }
+  ],
+  "catalog": [
+   "files.compress"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.compress",
+     "args": {
+      "paths": "*",
+      "dest": "*"
+     }
+    }
+   ]
+  },
+  "notes": "held_out tool"
+ },
+ {
+  "id": "sh_rename",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Rename flight_itinerary.pdf to barcelona_flight.pdf."
+   }
+  ],
+  "catalog": [
+   "files.rename"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.rename",
+     "args": {
+      "path": "*",
+      "new_name": "barcelona_flight.pdf"
+     },
+     "arg_match": {
+      "new_name": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_create_folder",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Make a new folder called Taxes in my Documents."
+   }
+  ],
+  "catalog": [
+   "files.create_folder"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.create_folder",
+     "args": {
+      "path": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_open_resume",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Open my resume."
+   }
+  ],
+  "catalog": [
+   "files.open",
+   "files.search"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.open",
+     "args": {
+      "path": "*"
+     }
+    }
+   ]
+  },
+  "notes": "a read-only search before the open is fine (subsequence grading)"
+ },
+ {
+  "id": "sh_screenshot",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Take a screenshot."
+   }
+  ],
+  "catalog": [
+   "screen.screenshot"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "screen.screenshot",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_ocr",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What does the text on my screen say?"
+   }
+  ],
+  "catalog": [
+   "screen.ocr"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "screen.ocr",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_weather",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's the weather like in Chicago right now?"
+   }
+  ],
+  "catalog": [
+   "weather.current"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "weather.current",
+     "args": {
+      "location": "Chicago"
+     },
+     "arg_match": {
+      "location": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_forecast",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Will it rain in Austin this weekend?"
+   }
+  ],
+  "catalog": [
+   "weather.forecast"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "weather.forecast",
+     "args": {
+      "location": "Austin"
+     },
+     "arg_match": {
+      "location": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_wifi_status",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Am I connected to wifi right now?"
+   }
+  ],
+  "catalog": [
+   "network.wifi_status"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "network.wifi_status",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_ip",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's my IP address?"
+   }
+  ],
+  "catalog": [
+   "network.get_ip"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "network.get_ip",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_wifi_connect",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Connect to the HomeBase-5G wifi network."
+   }
+  ],
+  "catalog": [
+   "network.connect_wifi",
+   "network.list_wifi"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "network.connect_wifi",
+     "args": {
+      "ssid": "HomeBase-5G"
+     },
+     "arg_match": {
+      "ssid": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_bt_list",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What Bluetooth devices are nearby?"
+   }
+  ],
+  "catalog": [
+   "devices.list_bluetooth"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "devices.list_bluetooth",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_facetime_dad",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "FaceTime Dad."
+   }
+  ],
+  "catalog": [
+   "calls.facetime"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "calls.facetime",
+     "args": {
+      "contact": "Dad"
+     },
+     "arg_match": {
+      "contact": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_podcast",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Play the latest episode of the Hard Fork podcast."
+   }
+  ],
+  "catalog": [
+   "music.play_podcast"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "music.play_podcast",
+     "args": {
+      "query": "*"
+     }
+    }
+   ]
+  },
+  "notes": "held_out tool"
+ },
+ {
+  "id": "sh_pause",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Pause the music."
+   }
+  ],
+  "catalog": [
+   "music.pause"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "music.pause",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_recurring",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Set up a recurring event called Morning Sync every weekday at 9:30am."
+   }
+  ],
+  "catalog": [
+   "calendar.create_recurring_event"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "calendar.create_recurring_event",
+     "args": {
+      "title": "*",
+      "start": "*",
+      "recurrence": "*"
+     }
+    }
+   ]
+  },
+  "notes": "held_out tool"
+ },
+ {
+  "id": "sh_draft",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Draft an email to Marcus about pushing the offsite back a week - don't send it yet."
+   }
+  ],
+  "catalog": [
+   "mail.create_draft",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "mail.create_draft",
+     "args": {
+      "to": "Marcus"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  },
+  "notes": "held_out tool; 'don't send' - mail.send would be wrong"
+ },
+ {
+  "id": "sh_shell",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Run 'uptime' in the terminal and tell me what it says."
+   }
+  ],
+  "catalog": [
+   "shell.run_command"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "shell.run_command",
+     "args": {
+      "command": "uptime"
+     },
+     "arg_match": {
+      "command": "normalized"
+     }
+    }
+   ]
+  },
+  "notes": "held_out tool"
+ },
+ {
+  "id": "sh_quit_app",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Quit Safari."
+   }
+  ],
+  "catalog": [
+   "apps.quit"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "apps.quit",
+     "args": {
+      "name": "Safari"
+     },
+     "arg_match": {
+      "name": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_clipboard",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Copy WIFI-PASS-9921 to my clipboard."
+   }
+  ],
+  "catalog": [
+   "clipboard.set"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "clipboard.set",
+     "args": {
+      "text": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "sh_airdrop",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "AirDrop the flight itinerary to Priya."
+   }
+  ],
+  "catalog": [
+   "devices.airdrop",
+   "files.search"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "devices.airdrop",
+     "args": {
+      "file_path": "*",
+      "recipient": "Priya"
+     },
+     "arg_match": {
+      "recipient": "contact"
+     }
+    }
+   ]
+  }
+ }
+]

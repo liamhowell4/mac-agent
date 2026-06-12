@@ -1,0 +1,210 @@
+[
+ {
+  "id": "ah_delete_file",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Delete the file."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_email_them",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Email them the update."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_turn_that_off",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Can you turn that off?"
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_move_pdf",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Move that PDF to the other folder."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_text_j",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Text J that I'm outside."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_clear_afternoon",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Clear my afternoon."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_play_yesterday",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Play the album we were listening to yesterday."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_forward_team",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Forward that email to the team."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_remind_thing",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Remind me about the thing tomorrow."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_call_back",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Call them back."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_share_doc",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Send the doc to everyone in the group."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_respond_invite",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Respond to the invite."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ },
+ {
+  "id": "ah_louder_or",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Make it a bit more readable in here."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify (read-only lookups allowed)"
+ }
+]

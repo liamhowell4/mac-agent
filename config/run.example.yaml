@@ -15,7 +15,9 @@ models:
   # restraint dropped for the two remaining MLX models (answered on Ollama cells; saves ~5h)
   - {provider: mlx, model: "Jackrong/MLX-Qwen3.5-4B-Claude-4.6-Opus-Reasoning-Distilled-v2-8bit",
      prompts: [default]}
-  - {provider: mlx, model: "LiquidAI/LFM2.5-8B-A1B-MLX-4bit", prompts: [default]}
+  # LFM2.5 moved to the Ollama path (native tools capability, prompt cache → much faster
+  # than mlx_lm; thinking-field fallback handled in the provider).
+  - {provider: ollama, model: "lfm2.5:8b"}
 retrieval:
   - {kind: passthrough}
   - {kind: embedding, embed_model: "hf.co/ChristianAzinn/e5-base-v2-gguf:Q8_0", k: 8}

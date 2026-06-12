@@ -10,6 +10,7 @@ import httpx
 
 from ..tools.adapters import parse_tool_calls, to_ollama_tools
 from ..types import Completion, Msg, ToolCall, ToolSchema
+from .mlx import parse_text_tool_calls
 
 MIN_OLLAMA_VERSION = (0, 20, 2)  # Gemma 4 tool-call parsing requires >= 0.20.2
 
@@ -77,9 +78,16 @@ class OllamaProvider:
         timeout: float = 120.0,
         num_ctx: int = 16384,
         num_predict: int = 2048,
+        extra_options: dict[str, Any] | None = None,
     ):
         self.model = model
-        self.name = f"ollama:{model}"
+        # Sampling overrides (Qwen explicitly warns against greedy decoding — repetition
+        # spirals; its tool-calling rec is temp~0.7-1.0, top_p, top_k, presence_penalty).
+        # They are part of the cell identity: same model + different sampling ≠ same cell.
+        self.extra_options = extra_options or {}
+        suffix = ("@" + ",".join(f"{k}={v}" for k, v in sorted(self.extra_options.items()))
+                  if self.extra_options else "")
+        self.name = f"ollama:{model}{suffix}"
         self.host = host.rstrip("/")
         self.seed = seed
         self.temperature = temperature
@@ -99,6 +107,7 @@ class OllamaProvider:
             "seed": self.seed,
             "num_ctx": self.num_ctx,
             "num_predict": self.num_predict,
+            **self.extra_options,
         }
 
     def complete(
@@ -122,9 +131,17 @@ class OllamaProvider:
             payload["tools"] = to_ollama_tools(tools)
         data = self._post(payload)
         msg = data.get("message", {})
+        calls = parse_tool_calls(msg.get("tool_calls"))
+        if not calls and tools and "<tool_call>" in (msg.get("content") or ""):
+            # Some GGUF templates emit calls Ollama's parser misses (observed: unsloth
+            # Qwen3.5 leaving literal <tool_call> XML in content mid-chain). The call WAS
+            # made — dropping it ends the agentic loop early. Recover with the raw-text
+            # parser, restricted to offered tool names so junk can't smuggle through.
+            offered = {t.name for t in tools}
+            calls = [c for c in parse_text_tool_calls(msg["content"]) if c.name in offered]
         return Completion(
-            tool_calls=parse_tool_calls(msg.get("tool_calls")),
-            text=msg.get("content") or None,
+            tool_calls=calls,
+            text=(msg.get("content") or None) if calls else _text_from_message(msg),
             latency_s=data["_latency"],
             prompt_tokens=int(data.get("prompt_eval_count", 0) or 0),
             completion_tokens=int(data.get("eval_count", 0) or 0),
@@ -187,6 +204,16 @@ class OllamaProvider:
         data = resp.json()
         data["_latency"] = latency
         return data
+
+
+def _text_from_message(msg: dict[str, Any]) -> str | None:
+    """Reply text from an /api/chat message, tolerating thinking-model template quirks.
+
+    LFM2.5's Ollama template misroutes the final post-tool-result reply into the
+    `thinking` field with empty `content`; falling back to `thinking` only when content
+    is empty recovers it without ever overriding a real reply.
+    """
+    return msg.get("content") or msg.get("thinking") or None
 
 
 def _parse_constrained_decision(content: str) -> tuple[list[ToolCall], str | None]:

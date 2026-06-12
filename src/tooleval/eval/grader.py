@@ -59,6 +59,19 @@ def _normalize(v: Any) -> str:
     return re.sub(r"[\s_\-]+", "", s)
 
 
+def _contact_fields(expected_name: str) -> set[str]:
+    """All identifiers (name/email/phone/id) of seeded contacts whose name contains
+    `expected_name` — deterministic, since the sim state is fixed."""
+    from ..tools.simulator import SimState  # noqa: PLC0415 — avoid import cycle at module load
+
+    want = _normalize(expected_name)
+    out: set[str] = set()
+    for c in SimState.seeded().contacts:
+        if want in _normalize(c["name"]):
+            out.update(_normalize(v) for v in c.values())
+    return out
+
+
 def match_value(predicted: Any, expected: Any, rule: str) -> bool:
     if expected == "*" or rule == "present":
         return True  # presence handled by caller; value unchecked
@@ -66,6 +79,11 @@ def match_value(predicted: Any, expected: Any, rule: str) -> bool:
         return predicted == expected or str(predicted) == str(expected)
     if rule == "normalized":
         return _normalize(predicted) == _normalize(expected)
+    if rule == "contact":
+        # A model that resolves "Daisy" → "Daisy Wong" / her email / her phone via
+        # contacts.find is MORE correct than one passing the literal string through.
+        pred = _normalize(predicted)
+        return (_normalize(expected) in pred) or pred in _contact_fields(str(expected))
     return True  # "semantic" → deferred to judge, not failed programmatically
 
 
@@ -104,8 +122,9 @@ def _match_in_order(
     out: list[tuple[ExpectedCall, ToolCall | None]] = []
     for exp in expected:
         found: ToolCall | None = None
+        accepted = {exp.name, *exp.any_of}
         while pi < len(predicted):
-            if predicted[pi].name == exp.name:
+            if predicted[pi].name in accepted:
                 found = predicted[pi]
                 pi += 1
                 break
@@ -120,12 +139,27 @@ def grade_task(
     task: Task,
     predicted_calls: list[ToolCall],
     offered_by_name: dict[str, ToolSchema],
+    statuses: list[str] | None = None,
 ) -> GradeResult:
     kind = task.expect.kind
     n = len(predicted_calls)
+    statuses = statuses or ["ok"] * n
 
     if kind in ("no_call", "clarify"):
-        abstained = n == 0
+        if kind == "clarify":
+            # Read-only lookups are the *ideal* path to discovering ambiguity (find two
+            # Sarahs → ask which); only a mutating call means the model guessed. A mutating
+            # attempt the runtime REJECTED (status=error, e.g. ambiguous-recipient
+            # disambiguation) caused no side effect — try, get blocked, then ask is good
+            # product behavior. Negatives stay strict: any call at all is an overcall.
+            mutating = [
+                c for c, st in zip(predicted_calls, statuses, strict=False)
+                if st != "error"
+                and not (offered_by_name.get(c.name) and offered_by_name[c.name].read_only)
+            ]
+            abstained = len(mutating) == 0
+        else:
+            abstained = n == 0
         return GradeResult(
             tier=task.tier, kind=kind, n_calls=n,
             abstained=abstained,
@@ -149,6 +183,8 @@ def grade_task(
         schema = offered_by_name.get(found.name)
         if schema is not None and not schema_valid(found.arguments, schema.parameters):
             arg_valid = False
+        if found.name != exp.name:
+            continue  # an any_of alternate; exp.args were written for the primary tool
         ok, nj = match_call_args(found.arguments, exp)
         needs_judge |= nj
         if not ok:

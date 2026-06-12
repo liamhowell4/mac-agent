@@ -1,0 +1,553 @@
+[
+ {
+  "id": "c2_delete_digest",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find the weekly digest newsletter in my inbox and delete it."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "mail.delete"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     }
+    },
+    {
+     "name": "mail.delete",
+     "args": {
+      "message_id": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_copy_invoice",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find the invoice PDF and copy it into Documents."
+   }
+  ],
+  "catalog": [
+   "files.search",
+   "files.copy"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "files.recent",
+      "files.list_dir"
+     ]
+    },
+    {
+     "name": "files.copy",
+     "args": {
+      "src": "*",
+      "dest": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_lunch_reply",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Read Daisy's lunch email and reply that 12:30 works great."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "mail.reply"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "mail.reply",
+     "args": {
+      "message_id": "*",
+      "body": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_flight_reminder",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Check my flight confirmation email and set a reminder for the morning of the flight."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "reminders.create"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "reminders.create",
+     "args": {
+      "text": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_gym_to_6",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Move my gym session to 6pm."
+   }
+  ],
+  "catalog": [
+   "calendar.list_events",
+   "calendar.update_event"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "calendar.list_events",
+     "args": {}
+    },
+    {
+     "name": "calendar.update_event",
+     "args": {
+      "event_id": "*",
+      "new_start": "18:00"
+     },
+     "arg_match": {
+      "new_start": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_decline_standup",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Decline the team standup invite."
+   }
+  ],
+  "catalog": [
+   "calendar.list_events",
+   "calendar.respond_to_invite"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "calendar.list_events",
+     "args": {}
+    },
+    {
+     "name": "calendar.respond_to_invite",
+     "args": {
+      "event_id": "*",
+      "response": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_text_recent_file",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Text Marcus the name of my most recent file."
+   }
+  ],
+  "catalog": [
+   "files.recent",
+   "messages.send",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.recent",
+     "args": {},
+     "any_of": [
+      "files.list_dir",
+      "files.search"
+     ]
+    },
+    {
+     "name": "messages.send",
+     "args": {
+      "recipient": "Marcus",
+      "body": "*"
+     },
+     "arg_match": {
+      "recipient": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_offsite_block",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Read Marcus's offsite email and block time for the offsite on my calendar."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "calendar.create_event"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "calendar.create_event",
+     "args": {
+      "title": "*",
+      "start": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_dim_play",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Dim the screen to 30 and put on something mellow."
+   }
+  ],
+  "catalog": [
+   "system.set_brightness",
+   "music.play"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "system.set_brightness",
+     "args": {
+      "level": 30
+     },
+     "arg_match": {
+      "level": "normalized"
+     }
+    },
+    {
+     "name": "music.play",
+     "args": {},
+     "any_of": [
+      "music.play_playlist"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_archive_photos",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Zip up the vacation photos folder and move the original to the trash."
+   }
+  ],
+  "catalog": [
+   "files.compress",
+   "files.trash"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.compress",
+     "args": {
+      "paths": "*",
+      "dest": "*"
+     }
+    },
+    {
+     "name": "files.trash",
+     "args": {
+      "path": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_rename_send",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Rename Q3_budget.xlsx to Q3_budget_final.xlsx and email it to Alex."
+   }
+  ],
+  "catalog": [
+   "files.rename",
+   "mail.send",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "files.rename",
+     "args": {
+      "path": "*",
+      "new_name": "*"
+     }
+    },
+    {
+     "name": "mail.send",
+     "args": {
+      "to": "Alex"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_standup_remind",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Look up when my standup is and set a reminder 10 minutes before it."
+   }
+  ],
+  "catalog": [
+   "calendar.list_events",
+   "reminders.create"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "calendar.list_events",
+     "args": {}
+    },
+    {
+     "name": "reminders.create",
+     "args": {
+      "text": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_sarahkim_notes",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Find Sarah Kim's email address and send her the standup notes file."
+   }
+  ],
+  "catalog": [
+   "contacts.find",
+   "mail.send",
+   "files.search"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "contacts.find",
+     "args": {
+      "name": "Sarah Kim"
+     },
+     "arg_match": {
+      "name": "normalized"
+     }
+    },
+    {
+     "name": "mail.send",
+     "args": {
+      "to": "*"
+     }
+    }
+   ]
+  },
+  "notes": "full name -> unambiguous"
+ },
+ {
+  "id": "c2_text_then_facetime",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Text Priya that the call is starting, then FaceTime her."
+   }
+  ],
+  "catalog": [
+   "messages.send",
+   "calls.facetime",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "messages.send",
+     "args": {
+      "recipient": "Priya",
+      "body": "*"
+     },
+     "arg_match": {
+      "recipient": "contact"
+     }
+    },
+    {
+     "name": "calls.facetime",
+     "args": {
+      "contact": "Priya"
+     },
+     "arg_match": {
+      "contact": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_forward_offsite",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Forward Marcus's offsite email to Sarah Kim."
+   }
+  ],
+  "catalog": [
+   "mail.search",
+   "mail.forward",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "mail.search",
+     "args": {
+      "query": "*"
+     },
+     "any_of": [
+      "mail.list_unread"
+     ]
+    },
+    {
+     "name": "mail.forward",
+     "args": {
+      "message_id": "*",
+      "to": "Sarah Kim"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "c2_screenshot_email",
+  "tier": "chain",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Take a screenshot and email it to Daisy."
+   }
+  ],
+  "catalog": [
+   "screen.screenshot",
+   "mail.send",
+   "contacts.find"
+  ],
+  "expect": {
+   "kind": "chain",
+   "calls": [
+    {
+     "name": "screen.screenshot",
+     "args": {}
+    },
+    {
+     "name": "mail.send",
+     "args": {
+      "to": "Daisy"
+     },
+     "arg_match": {
+      "to": "contact"
+     }
+    }
+   ]
+  }
+ }
+]

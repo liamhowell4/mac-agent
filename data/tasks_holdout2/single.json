@@ -1,0 +1,687 @@
+[
+ {
+  "id": "s2_volume_down",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Lower the volume to 15."
+   }
+  ],
+  "catalog": [
+   "system.set_volume"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.set_volume",
+     "args": {
+      "level": 15
+     },
+     "arg_match": {
+      "level": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_brightness_max",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Crank the brightness all the way up."
+   }
+  ],
+  "catalog": [
+   "system.set_brightness"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.set_brightness",
+     "args": {
+      "level": 100
+     },
+     "arg_match": {
+      "level": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_dnd_off",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Turn off do not disturb."
+   }
+  ],
+  "catalog": [
+   "system.toggle_dnd"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.toggle_dnd",
+     "args": {
+      "enabled": false
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_bluetooth_off",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Kill Bluetooth for me."
+   }
+  ],
+  "catalog": [
+   "system.toggle_bluetooth"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.toggle_bluetooth",
+     "args": {
+      "enabled": false
+     },
+     "arg_match": {
+      "enabled": "exact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_sleep",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Put the computer to sleep."
+   }
+  ],
+  "catalog": [
+   "system.sleep"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.sleep",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_focus_personal",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Switch my focus mode to personal."
+   }
+  ],
+  "catalog": [
+   "system.set_focus_mode"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.set_focus_mode",
+     "args": {
+      "mode": "personal"
+     },
+     "arg_match": {
+      "mode": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_get_volume",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "How loud is my Mac set right now?"
+   }
+  ],
+  "catalog": [
+   "system.get_volume"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "system.get_volume",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_storage",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "How much disk space do I have left?"
+   }
+  ],
+  "catalog": [
+   "files.storage_info"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.storage_info",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_read_standup",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Read me my standup notes file."
+   }
+  ],
+  "catalog": [
+   "files.read",
+   "files.search"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.read",
+     "args": {
+      "path": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_copy_budget",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Make a copy of the Q3 budget spreadsheet."
+   }
+  ],
+  "catalog": [
+   "files.copy",
+   "files.search"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.copy",
+     "args": {
+      "src": "*",
+      "dest": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_open_pictures",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Show me what's in my Pictures folder."
+   }
+  ],
+  "catalog": [
+   "files.list_dir"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "files.list_dir",
+     "args": {
+      "path": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_mail_folders",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What mail folders do I have?"
+   }
+  ],
+  "catalog": [
+   "mail.list_folders"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "mail.list_folders",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_unread",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Any unread emails?"
+   }
+  ],
+  "catalog": [
+   "mail.list_unread"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "mail.list_unread",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_read_thread",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Show my recent texts with Daisy."
+   }
+  ],
+  "catalog": [
+   "messages.read_thread"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "messages.read_thread",
+     "args": {
+      "contact": "Daisy"
+     },
+     "arg_match": {
+      "contact": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_msg_search",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Search my texts for 'dinner'."
+   }
+  ],
+  "catalog": [
+   "messages.search"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "messages.search",
+     "args": {
+      "query": "dinner"
+     },
+     "arg_match": {
+      "query": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_next_track",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Skip this song."
+   }
+  ],
+  "catalog": [
+   "music.next_track"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "music.next_track",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_prev_track",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Go back to the previous track."
+   }
+  ],
+  "catalog": [
+   "music.previous_track"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "music.previous_track",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_music_vol",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Set the music volume to 50."
+   }
+  ],
+  "catalog": [
+   "music.set_volume"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "music.set_volume",
+     "args": {
+      "level": 50
+     },
+     "arg_match": {
+      "level": "normalized"
+     }
+    }
+   ]
+  },
+  "notes": "music.set_volume vs system.set_volume distractor pair"
+ },
+ {
+  "id": "s2_whats_playing",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What song is this?"
+   }
+  ],
+  "catalog": [
+   "music.now_playing"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "music.now_playing",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_open_terminal",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Open Terminal."
+   }
+  ],
+  "catalog": [
+   "apps.open"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "apps.open",
+     "args": {
+      "name": "Terminal"
+     },
+     "arg_match": {
+      "name": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_switch_safari",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Switch over to Safari."
+   }
+  ],
+  "catalog": [
+   "apps.switch_to"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "apps.switch_to",
+     "args": {
+      "name": "Safari"
+     },
+     "arg_match": {
+      "name": "normalized"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_running_apps",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What apps are running right now?"
+   }
+  ],
+  "catalog": [
+   "apps.list_running"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "apps.list_running",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_clip_get",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's on my clipboard?"
+   }
+  ],
+  "catalog": [
+   "clipboard.get"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "clipboard.get",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_fetch_url",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Pull up the text of example.com/pricing for me."
+   }
+  ],
+  "catalog": [
+   "web.fetch_url"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "web.fetch_url",
+     "args": {
+      "url": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_public_ip",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "What's my public IP?"
+   }
+  ],
+  "catalog": [
+   "network.get_ip"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "network.get_ip",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_phone_mom",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Call Mom."
+   }
+  ],
+  "catalog": [
+   "calls.phone"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "calls.phone",
+     "args": {
+      "contact": "Mom"
+     },
+     "arg_match": {
+      "contact": "contact"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_water_plants",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Remind me to water the plants tonight at 8."
+   }
+  ],
+  "catalog": [
+   "reminders.create"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "reminders.create",
+     "args": {
+      "text": "*"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "s2_screenshot_region",
+  "tier": "single",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Take a screenshot of the whole screen."
+   }
+  ],
+  "catalog": [
+   "screen.screenshot"
+  ],
+  "expect": {
+   "kind": "tool_call",
+   "calls": [
+    {
+     "name": "screen.screenshot",
+     "args": {}
+    }
+   ]
+  }
+ }
+]

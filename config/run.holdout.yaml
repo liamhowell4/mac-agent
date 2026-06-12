@@ -1,0 +1,15 @@
+# HELD-OUT test set — run ONCE, at the end, on the final ship-candidate scaffold.
+# Do not iterate prompts/harness against these results; that's what data/tasks/ (dev) is for.
+models:
+  - {provider: ollama, model: "qwen3.5:4b-mlx"}   # ship candidate (only cell, per 2026-06-11)
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]   # the winning prompt from the v3 dev waves (locked 2026-06-11)
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks_holdout/*.json"
+seed: 42

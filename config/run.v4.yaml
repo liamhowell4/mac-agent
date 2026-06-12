@@ -1,0 +1,15 @@
+# v4 wave (2026-06-11): can qwen-4B reach 95% solo? ask_user tool + recipient
+# disambiguation + music.search seeds + scalar→array coercion (HARNESS_VERSION=4).
+models:
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL"}
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42

@@ -1,0 +1,22 @@
+# LFM2.5-8B harness-shaping wave 3 (2026-06-10), HARNESS_VERSION=3.
+# restraint dropped: hurt LFM in both v1 and v2 (overcall 0.25 vs default's 0.15).
+# router = two-pass act/answer/clarify scaffold (structural over-call fix).
+models:
+  - {provider: ollama, model: "lfm2.5:8b",
+     decoding: [unconstrained], prompts: [default, tool_first, fewshot]}
+  - {provider: ollama, model: "lfm2.5:8b",
+     decoding: [router], prompts: [default], retrieval: [passthrough]}
+retrieval:
+  - {kind: passthrough}
+  # domain expansion: offline recall 0.647 (plain k=8) → 0.882 (~22 tools offered)
+  - {kind: embedding, embed_model: "hf.co/ChristianAzinn/e5-base-v2-gguf:Q8_0", k: 8,
+     expand_domains: 5}
+decoding: [unconstrained]
+prompts: [default, tool_first, fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42

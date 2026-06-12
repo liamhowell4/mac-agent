@@ -1,0 +1,210 @@
+[
+ {
+  "id": "a2_send_it",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Send it to him."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_delete_event",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Delete that event from my calendar."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_sarah_text",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Shoot Sarah a text that I'll be there soon."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_barely_hear",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "I can barely hear this."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_email_file",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Email the file to the team."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_push_back",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Push it back an hour."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_open_daisy",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Open the thing Daisy sent."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_remind_meeting",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Set a reminder before my meeting."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_close_it",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Close it, please."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_reply_yes",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Reply yes to that."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_share_location",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Share my location with them."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_turn_on",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Turn it on."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ },
+ {
+  "id": "a2_meeting_her",
+  "tier": "ambiguous",
+  "messages": [
+   {
+    "role": "user",
+    "content": "Set up a meeting with her next week."
+   }
+  ],
+  "catalog": [],
+  "expect": {
+   "kind": "clarify",
+   "calls": []
+  },
+  "notes": "underspecified referent - clarify or ask_user"
+ }
+]

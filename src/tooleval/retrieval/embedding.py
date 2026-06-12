@@ -41,9 +41,17 @@ class EmbeddingRetriever:
         embed_model: str = "e5",  # was nomic; e5 with query:/passage: prefixes retrieves better
         host: str = "http://localhost:11434",
         cache_dir: Path | None = Path("results/cache"),
+        expand_domains: int = 0,
     ):
         self.embed_model = embed_model
-        self.name = f"embedding:{embed_model}"
+        # Domain expansion: after top-k, also offer every tool from the domains of the
+        # top-m hits ("calendar.update_event ranked high → open the calendar toolbox").
+        # Fixes the structural chain miss: a user query ("move my 2pm") can't lexically
+        # reach mid-chain tools (calendar.list_events). Offline sweep on the dev set:
+        # plain k recall plateaus at 0.735; top-8 + domains-of-top-5 hits 0.882 (~22 tools).
+        self.expand_domains = expand_domains
+        suffix = f"+dom{expand_domains}" if expand_domains else ""
+        self.name = f"embedding:{embed_model}{suffix}"
         self.host = host.rstrip("/")
         self.cache_dir = cache_dir
         self.q_prefix, self.d_prefix = _prefixes_for(embed_model)
@@ -92,6 +100,16 @@ class EmbeddingRetriever:
         qv = self._embed([self.q_prefix + query])[0]
         sims = self._matrix @ qv
         k = min(k, HARD_CAP, len(catalog))
-        top = np.argsort(-sims)[:k]
+        order = np.argsort(-sims)
         by_name = {t.name: t for t in catalog}
-        return [by_name[self._names[i]] for i in top]
+        selected = [by_name[self._names[i]] for i in order[:k]]
+        if self.expand_domains:
+            domains = {t.domain for t in selected[: self.expand_domains]}
+            chosen = {t.name for t in selected}
+            # keep ranked order for the expansion so the offered list stays stable
+            for i in order[k:]:
+                t = by_name[self._names[i]]
+                if t.domain in domains and t.name not in chosen:
+                    selected.append(t)
+                    chosen.add(t.name)
+        return selected

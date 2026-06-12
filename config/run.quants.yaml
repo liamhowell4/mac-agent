@@ -1,0 +1,17 @@
+# Quick quant-check wave (2026-06-11): fresh unsloth GGUFs on the ship scaffold.
+# gemma-4-12b UD-Q2_K_XL — does the 12B's restraint survive a 2-bit squeeze?
+# Qwen3.5-4B-MTP UD-Q4_K_XL — unsloth quant vs the qwen3.5:4b-mlx baseline (0.924).
+models:
+  - {provider: ollama, model: "hf.co/unsloth/gemma-4-12b-it-GGUF:UD-Q2_K_XL"}
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL"}
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42

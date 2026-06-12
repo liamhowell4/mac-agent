@@ -48,3 +48,37 @@ def test_parse_tool_calls_bad_json_arguments():
 def test_parse_tool_calls_none_and_empty():
     assert parse_tool_calls(None) == []
     assert parse_tool_calls([]) == []
+
+
+def test_text_from_message_thinking_fallback():
+    # LFM2.5 template quirk: final post-tool-result reply lands in `thinking`
+    from tooleval.providers.ollama import _text_from_message
+
+    assert _text_from_message({"content": "real reply", "thinking": "hmm"}) == "real reply"
+    assert _text_from_message({"content": "", "thinking": "Volume set to 30%."}) == (
+        "Volume set to 30%."
+    )
+    assert _text_from_message({"content": "", "thinking": ""}) is None
+    assert _text_from_message({}) is None
+
+
+def test_normalize_args_coercions():
+    from tooleval.tools.adapters import normalize_args
+    from tooleval.types import ToolCall
+
+    schema = ToolSchema(
+        name="messages.send", description="send",
+        parameters={"type": "object", "properties": {
+            "recipient": {"type": "string"}, "level": {"type": "integer"},
+            "loud": {"type": "boolean"}, "tags": {"type": "array"},
+        }},
+    )
+    call = ToolCall("messages.send", {
+        "recipient": ["Alex"], "level": "30", "loud": "true", "tags": ["a"], "extra": "x",
+    })
+    norm = normalize_args(call, schema)
+    assert norm.arguments == {
+        "recipient": "Alex", "level": 30, "loud": True, "tags": ["a"], "extra": "x",
+    }
+    # no schema → untouched
+    assert normalize_args(call, None) is call

@@ -1,0 +1,16 @@
+# HOLDOUT-2 (2026-06-11): second never-seen test set, run ONCE on the locked ship config.
+# Greedy decoding locked empirically: Qwen's recommended sampling scored 0.924 vs greedy
+# 0.955 on dev — the anti-greedy advice targets long generations, not short tool calls.
+models:
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL"}
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks_holdout2/*.json"
+seed: 42

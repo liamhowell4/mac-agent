@@ -1,0 +1,19 @@
+# Sampling experiment (2026-06-11): Qwen explicitly warns against greedy decoding
+# ("performance degradation and endless repetitions") — every prior run was temp=0.
+# Two cells: Qwen's non-thinking instruct rec, and its tool-calling/reasoning rec.
+models:
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL",
+     options: {temperature: 0.7, top_p: 0.8, top_k: 20, presence_penalty: 1.5}}
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL",
+     options: {temperature: 1.0, top_p: 0.95, top_k: 20, presence_penalty: 1.5}}
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42
