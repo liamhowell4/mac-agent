@@ -80,6 +80,7 @@ class OllamaProvider:
         num_predict: int = 2048,
         extra_options: dict[str, Any] | None = None,
         think: bool | None = None,
+        keep_alive: str | None = None,
     ):
         self.model = model
         # Sampling overrides (Qwen explicitly warns against greedy decoding — repetition
@@ -89,6 +90,9 @@ class OllamaProvider:
         # think toggles the model's reasoning channel (top-level Ollama field, not an
         # option). Measured ~5x latency difference on qwen3.5-4B — also cell identity.
         self.think = think
+        # keep_alive pins the model between requests (product runtime). NOT part of the
+        # cell identity — it can't affect outputs, only residency. None = Ollama default.
+        self.keep_alive = keep_alive
         parts = dict(self.extra_options)
         if think is not None:
             parts["think"] = think
@@ -136,8 +140,10 @@ class OllamaProvider:
         }
         if self.think is not None:
             payload["think"] = self.think
+        if self.keep_alive is not None:
+            payload["keep_alive"] = self.keep_alive
         if tools:
-            payload["tools"] = to_ollama_tools(tools)
+            payload["tools"] = self._wire_tools(tools)
         data = self._post(payload)
         msg = data.get("message", {})
         calls = parse_tool_calls(msg.get("tool_calls"))
@@ -200,6 +206,28 @@ class OllamaProvider:
             completion_tokens=int(data.get("eval_count", 0) or 0),
             raw=data,
         )
+
+    def _wire_tools(self, tools: list[ToolSchema]) -> list[dict[str, Any]]:
+        """Convert tools once per catalog object — a 104-tool list rebuilt every turn
+        is pure waste in the agentic loop (same list object across turns/requests)."""
+        cached = getattr(self, "_tools_cache", None)
+        if cached is not None and cached[0] == id(tools):
+            return cached[1]
+        wire = to_ollama_tools(tools)
+        self._tools_cache = (id(tools), wire)
+        return wire
+
+    def load(self, keep_alive: str | None = None) -> None:
+        """Pin the model in memory (mirror of unload). Best-effort."""
+        try:
+            httpx.post(
+                f"{self.host}/api/chat",
+                json={"model": self.model, "messages": [],
+                      "keep_alive": keep_alive or self.keep_alive or "60m"},
+                timeout=120.0,
+            )
+        except httpx.HTTPError:
+            pass
 
     def unload(self) -> None:
         """Evict this model from memory (keep_alive=0) so models don't co-reside on 16GB."""
