@@ -1,0 +1,15 @@
+# think:false experiment (2026-06-11): ~5x latency cut per turn measured, but a smoke
+# showed it may skip the lookup step in chains. Full dev set decides.
+models:
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL", think: false}
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42
