@@ -1,5 +1,25 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let quakeOpenSettings = Notification.Name("quake.openSettings")
+}
+
+/// Invisible bridge: AppKit (menubar item) can't open the SwiftUI Settings
+/// scene directly on modern macOS — only the openSettings environment action
+/// can. This listener lives in the panel's view tree, which exists from launch.
+private struct SettingsOpener: View {
+    @Environment(\.openSettings) private var openSettings
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onReceive(NotificationCenter.default.publisher(for: .quakeOpenSettings)) { _ in
+                openSettings()
+                NSApp.activate(ignoringOtherApps: true)
+            }
+    }
+}
+
 /// Root of the floating panel: capsule input on top, then whichever
 /// interaction surface the daemon state calls for.
 struct RootView: View {
@@ -25,6 +45,7 @@ struct RootView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(width: FloatingPanel.panelWidth)
+        .background(SettingsOpener())
     }
 
     private var isErrorState: Bool {

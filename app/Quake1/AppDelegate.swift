@@ -138,10 +138,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         NSApp.activate(ignoringOtherApps: true)
-        // SwiftUI Settings scene: the selector name differs across macOS releases
-        if !NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) {
-            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-        }
+        // The private showSettingsWindow: selector no longer works on modern
+        // macOS; route through SwiftUI's openSettings environment action via
+        // a listener living in the panel's view tree.
+        panel?.orderFrontRegardless()
+        NotificationCenter.default.post(name: .quakeOpenSettings, object: nil)
     }
 
     /// Called from SettingsView's Apply button: respawn the daemon with the new
