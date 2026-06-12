@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var hotKey: HotKey?
     private var panel: FloatingPanel?
+    private var settingsBridge: NSWindow?
 
     let client = DaemonClient()
     let daemon = DaemonProcess()
@@ -14,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setUpStatusItem()
         setUpHotKey()
         setUpPanel()
+        setUpSettingsBridge()
 
         client.onConnectFailure = { [weak self] in
             self?.daemon.takeOwnership()
@@ -114,6 +116,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.panel = panel
     }
 
+    /// A permanently-present, off-screen, zero-alpha 1×1 window hosting the
+    /// SettingsOpener. It must stay ordered-in (never hidden) so its
+    /// `onReceive(openSettings)` subscription stays alive — that's how the
+    /// AppKit menu item reaches SwiftUI's openSettings action without ever
+    /// showing the floating panel.
+    private func setUpSettingsBridge() {
+        let w = NSWindow(
+            contentRect: NSRect(x: -10_000, y: -10_000, width: 1, height: 1),
+            styleMask: [.borderless], backing: .buffered, defer: false
+        )
+        w.alphaValue = 0
+        w.isOpaque = false
+        w.hasShadow = false
+        w.ignoresMouseEvents = true
+        w.isExcludedFromWindowsMenu = true
+        w.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+        w.contentView = NSHostingView(rootView: SettingsOpener())
+        w.orderFrontRegardless()
+        settingsBridge = w
+    }
+
     private func togglePanel() {
         guard let panel else { return }
         if panel.isVisible {
@@ -150,10 +173,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         NSApp.activate(ignoringOtherApps: true)
-        // The private showSettingsWindow: selector no longer works on modern
-        // macOS; route through SwiftUI's openSettings environment action via
-        // a listener living in the panel's view tree.
-        panel?.orderFrontRegardless()
+        // Route through SwiftUI's openSettings action via the always-present
+        // settings-bridge window — no need to show the floating panel.
         NotificationCenter.default.post(name: .quakeOpenSettings, object: nil)
     }
 

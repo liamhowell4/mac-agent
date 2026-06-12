@@ -6,8 +6,10 @@ extension Notification.Name {
 
 /// Invisible bridge: AppKit (menubar item) can't open the SwiftUI Settings
 /// scene directly on modern macOS — only the openSettings environment action
-/// can. This listener lives in the panel's view tree, which exists from launch.
-private struct SettingsOpener: View {
+/// can. AppDelegate hosts one of these in a permanently-present, off-screen,
+/// zero-alpha window so the subscription stays alive without ever showing the
+/// floating panel.
+struct SettingsOpener: View {
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -45,7 +47,6 @@ struct RootView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(width: FloatingPanel.panelWidth)
-        .background(SettingsOpener())
     }
 
     private var isErrorState: Bool {
