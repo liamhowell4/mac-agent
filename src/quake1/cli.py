@@ -102,7 +102,7 @@ def main() -> int:
     ap.add_argument("--model", default=SHIP_MODEL)
     ap.add_argument("--host", default="http://localhost:11434")
     ap.add_argument("--sim", action="store_true", help="use the simulator (no real actions)")
-    ap.add_argument("--think", default=None, choices=("on", "off"),
+    ap.add_argument("--think", default="off", choices=("on", "off"),
                     help="override the model's reasoning channel")
     args = ap.parse_args()
 
