@@ -65,6 +65,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         restartItem.target = self
         menu.addItem(restartItem)
 
+        let settingsItem = NSMenuItem(
+            title: "Settings…",
+            action: #selector(openSettings),
+            keyEquivalent: ","
+        )
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
@@ -126,6 +134,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func newConversation() {
         client.reset()
         showPanel()
+    }
+
+    @objc private func openSettings() {
+        NSApp.activate(ignoringOtherApps: true)
+        // SwiftUI Settings scene: the selector name differs across macOS releases
+        if !NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) {
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        }
+    }
+
+    /// Called from SettingsView's Apply button: respawn the daemon with the new
+    /// model/think env, then reconnect.
+    func applySettingsAndRestartDaemon() {
+        client.disconnect()
+        daemon.restartDaemon()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.client.connect()
+        }
     }
 
     @objc private func restartDaemon() {

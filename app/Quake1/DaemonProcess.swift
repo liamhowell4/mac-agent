@@ -63,6 +63,11 @@ final class DaemonProcess {
         p.standardOutput = log ?? FileHandle.nullDevice
         p.standardError = log ?? FileHandle.nullDevice
         p.currentDirectoryURL = URL(fileURLWithPath: repoPath)
+        var env = ProcessInfo.processInfo.environment
+        let model = UserDefaults.standard.string(forKey: "modelTag") ?? ""
+        if !model.isEmpty { env["QUAKE_MODEL"] = model }
+        env["QUAKE_THINK"] = UserDefaults.standard.bool(forKey: "thinkMode") ? "on" : "off"
+        p.environment = env
         do {
             try p.run()
             process = p

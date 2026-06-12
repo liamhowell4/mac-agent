@@ -8,23 +8,91 @@ struct Quake1App: App {
         // LSUIElement menubar app: no main window. The floating panel is
         // owned by AppDelegate; Settings is the only SwiftUI scene.
         Settings {
-            SettingsView()
+            SettingsView(
+                onApply: { appDelegate.applySettingsAndRestartDaemon() }
+            )
         }
     }
 }
 
-private struct SettingsView: View {
+struct SettingsView: View {
+    @AppStorage("modelTag") private var modelTag: String = ""
+    @AppStorage("thinkMode") private var thinkMode: Bool = false
     @AppStorage("repoPath") private var repoPath: String = DaemonProcess.defaultRepoPath
+
+    @State private var availableModels: [String] = []
+    @State private var loadError: String?
+    @State private var applied = false
+
+    var onApply: () -> Void = {}
 
     var body: some View {
         Form {
-            TextField("Repo path", text: $repoPath)
-                .frame(minWidth: 380)
-            Text("The daemon is launched as: uv --directory <repo> run quake-daemon")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Section("Model") {
+                if availableModels.isEmpty {
+                    HStack {
+                        TextField("Ollama model tag", text: $modelTag,
+                                  prompt: Text("default (eval-validated qwen 4B)"))
+                        Button("Load installed models") { Task { await loadModels() } }
+                    }
+                } else {
+                    Picker("Model", selection: $modelTag) {
+                        Text("Default (eval-validated qwen 4B)").tag("")
+                        ForEach(availableModels, id: \.self) { tag in
+                            Text(tag).tag(tag)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                if let loadError {
+                    Text(loadError).font(.caption).foregroundStyle(.red)
+                }
+                Toggle("Reasoning mode (slower, same accuracy on the eval)",
+                       isOn: $thinkMode)
+            }
+
+            Section("Advanced") {
+                TextField("Repo path", text: $repoPath)
+                Text("The daemon runs from <repo>/.venv/bin/quake-daemon")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Spacer()
+                if applied {
+                    Text("Restarting daemon…")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Button("Apply & Restart Daemon") {
+                    onApply()
+                    applied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { applied = false }
+                }
+                .keyboardShortcut(.defaultAction)
+            }
         }
-        .padding(20)
-        .frame(width: 480)
+        .formStyle(.grouped)
+        .padding(12)
+        .frame(width: 520)
+        .task { await loadModels() }
+    }
+
+    /// List installed Ollama models so switching is a picker, not a typing exercise.
+    private func loadModels() async {
+        guard let url = URL(string: "http://localhost:11434/api/tags") else { return }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            struct Tags: Decodable {
+                struct M: Decodable { let name: String }
+                let models: [M]
+            }
+            let tags = try JSONDecoder().decode(Tags.self, from: data)
+            availableModels = tags.models.map(\.name).sorted()
+            loadError = nil
+        } catch {
+            loadError = "Couldn't list models — is Ollama running?"
+        }
     }
 }
