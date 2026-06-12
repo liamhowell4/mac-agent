@@ -62,6 +62,28 @@ per tool: a canonical **OpenAI function-calling schema** under `function`, plus 
 object (`domain`, `read_only`, `distractor`, `held_out`) that the harness consumes and model
 adapters ignore. A browser reload resets the form to `seed()` — copy unsaved JSON out first.
 
+## Code signing (Quake app — required for permissions to persist)
+
+The Quake app is signed with a **stable self-signed identity**, not ad-hoc. This is
+load-bearing: macOS keys TCC permission grants (Calendar/Mail/Automation/etc.) to the
+app's code signature, and an ad-hoc signature's hash changes every build — silently
+revoking every grant. The identity `"Quake1 Local Signing"` lives in a dedicated
+keychain `~/Library/Keychains/quake-signing.keychain-db` (password `quake-signing`,
+already in the user keychain search list). `app/project.yml` sets `CODE_SIGN_STYLE:
+Manual` + `CODE_SIGN_IDENTITY: "Quake1 Local Signing"`.
+
+- **Before building the app:** `security unlock-keychain -p quake-signing ~/Library/Keychains/quake-signing.keychain-db`, then `cd app && xcodegen generate && xcodebuild -scheme Quake1 -configuration Release build`.
+- **If the keychain is lost** (recreate the identity): generate a self-signed cert with
+  `extendedKeyUsage=codeSigning`, export to p12 with **legacy** MAC (`openssl pkcs12
+  -export -legacy -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1`), import
+  into a fresh keychain with `-T /usr/bin/codesign`, then `security
+  set-key-partition-list -S apple-tool:,apple:,codesign:`. Permissions reset once after
+  recreating (new cert = new identity).
+- **Attribution:** the app spawns + owns the daemon (`DaemonProcess.takeOwnership` kills
+  any terminal-spawned daemon first), so the daemon's osascript prompts attribute to
+  Quake.app — not the terminal that happened to start a stray daemon. "Grant all
+  permissions" in Settings runs the Automation probes from the app via NSAppleScript.
+
 ## Locked design decisions (agreed in planning — not discoverable from code)
 
 - **Execution = full agentic loop.** The runner feeds simulator tool results back to the model and

@@ -30,5 +30,11 @@ targets:
         # No sandbox: the app spawns the Python daemon, and the daemon controls the Mac.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: NO
-        CODE_SIGN_STYLE: Automatic
+        # Stable self-signed identity (in the dedicated `quake-signing` keychain) so
+        # macOS permission grants survive every rebuild. Ad-hoc signing changes the
+        # code hash each build, which silently revokes all TCC grants. See the
+        # "Code signing" note in the project CLAUDE.md to recreate the identity.
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Quake1 Local Signing"
+        DEVELOPMENT_TEAM: ""
         GENERATE_INFOPLIST_FILE: NO

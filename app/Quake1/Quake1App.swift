@@ -24,6 +24,9 @@ struct SettingsView: View {
     @State private var loadError: String?
     @State private var applied = false
 
+    @State private var granting = false
+    @State private var grantStatus: String?
+
     var onApply: () -> Void = {}
 
     var body: some View {
@@ -49,6 +52,29 @@ struct SettingsView: View {
                 }
                 Toggle("Reasoning mode (slower, same accuracy on the eval)",
                        isOn: $thinkMode)
+            }
+
+            Section("Permissions") {
+                Text("Grant every macOS permission once, attributed to Quake. " +
+                     "Click through each dialog that appears; the grants then " +
+                     "cover the assistant's real actions and persist across updates.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Button(granting ? "Granting…" : "Grant all permissions") {
+                        grantAll()
+                    }
+                    .disabled(granting)
+                    Button("Open Automation Settings") {
+                        PermissionSetup.openAutomationSettings()
+                    }
+                    if granting { ProgressView().controlSize(.small) }
+                }
+                if let grantStatus {
+                    Text(grantStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section("Advanced") {
@@ -77,6 +103,25 @@ struct SettingsView: View {
         .padding(12)
         .frame(width: 520)
         .task { await loadModels() }
+    }
+
+    /// Walk every permission prompt from Quake itself (see PermissionSetup).
+    private func grantAll() {
+        granting = true
+        grantStatus = nil
+        PermissionSetup.grantAll(
+            progress: { index, total, app in
+                grantStatus = "Requesting \(app)… (\(index + 1)/\(total))"
+            },
+            completion: { results in
+                granting = false
+                let denied = results.filter { !$0.granted }.map(\.app)
+                grantStatus = denied.isEmpty
+                    ? "All permissions granted ✓"
+                    : "Granted, except: \(denied.joined(separator: ", ")). " +
+                      "Re-run, or enable them in System Settings."
+            }
+        )
     }
 
     /// List installed Ollama models so switching is a picker, not a typing exercise.

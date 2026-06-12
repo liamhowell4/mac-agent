@@ -16,11 +16,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setUpPanel()
 
         client.onConnectFailure = { [weak self] in
-            self?.daemon.spawnIfNeeded()
+            self?.daemon.takeOwnership()
         }
-        // Eager spawn: the daemon exits immediately if another instance already
-        // serves the socket, so this is safe and makes startup deterministic.
-        daemon.spawnIfNeeded()
+        // Take ownership at launch: if a terminal-spawned daemon is serving the
+        // socket, its permission prompts attribute to that terminal (e.g. Ghostty),
+        // not Quake — kill it and spawn our own so TCC grants attach to Quake.app.
+        daemon.takeOwnership()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
             self?.client.connect()
         }
