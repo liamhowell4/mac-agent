@@ -132,13 +132,20 @@ class OllamaProvider:
         data = self._post(payload)
         msg = data.get("message", {})
         calls = parse_tool_calls(msg.get("tool_calls"))
-        if not calls and tools and "<tool_call>" in (msg.get("content") or ""):
+        if not calls and tools:
             # Some GGUF templates emit calls Ollama's parser misses (observed: unsloth
-            # Qwen3.5 leaving literal <tool_call> XML in content mid-chain). The call WAS
-            # made — dropping it ends the agentic loop early. Recover with the raw-text
-            # parser, restricted to offered tool names so junk can't smuggle through.
-            offered = {t.name for t in tools}
-            calls = [c for c in parse_text_tool_calls(msg["content"]) if c.name in offered]
+            # Qwen3.5 leaving literal <tool_call> XML in content mid-chain, and — under
+            # long contexts — routing the ENTIRE output into `thinking` with empty
+            # content). The call WAS made — dropping it ends the agentic loop early.
+            # Recover with the raw-text parser, restricted to offered tool names.
+            # `thinking` is only scanned when content is empty: non-empty content means
+            # thinking is real deliberation, which may contain rejected candidate calls.
+            blob = msg.get("content") or ""
+            if "<tool_call>" not in blob and not blob.strip():
+                blob = msg.get("thinking") or ""
+            if "<tool_call>" in blob:
+                offered = {t.name for t in tools}
+                calls = [c for c in parse_text_tool_calls(blob) if c.name in offered]
         return Completion(
             tool_calls=calls,
             text=(msg.get("content") or None) if calls else _text_from_message(msg),

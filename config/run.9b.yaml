@@ -1,0 +1,15 @@
+# 9B-MTP check (2026-06-11): same framework as the 4B ship candidate, more brain.
+# Does scale fix announce-then-stall chains + amb_turn_it_up under v5?
+models:
+  - {provider: ollama, model: "hf.co/unsloth/Qwen3.5-9B-MTP-GGUF:UD-Q4_K_XL"}
+retrieval:
+  - {kind: passthrough}
+decoding: [unconstrained]
+prompts: [fewshot]
+
+judge:
+  provider: openrouter
+  model: "${OPENROUTER_MODEL}"
+
+tasks: "data/tasks/*.json"
+seed: 42

@@ -116,3 +116,27 @@ def test_provider_sampling_options_in_name_and_payload():
     opts = p._options()
     assert opts["temperature"] == 0.7 and opts["top_k"] == 20
     assert OllamaProvider("m").name == "ollama:m"
+
+
+def test_ollama_recovers_call_from_thinking_when_content_empty():
+    from tooleval.providers.ollama import OllamaProvider
+
+    p = OllamaProvider("fake")
+    p._post = lambda payload: {
+        "message": {"content": "", "tool_calls": None,
+                    "thinking": ('Now I will delete it.\n<tool_call>\n'
+                                 '<function=calendar.delete_event>\n<parameter=event_id>\n'
+                                 'evt_gym\n</parameter>\n</function>\n</tool_call>')},
+        "_latency": 0.01, "prompt_eval_count": 1, "eval_count": 1,
+    }
+    tools = [_schema("calendar.delete_event")]
+    comp = p.complete([], tools)
+    assert [c.name for c in comp.tool_calls] == ["calendar.delete_event"]
+    # non-empty content means thinking is real deliberation — must NOT be mined for calls
+    p._post = lambda payload: {
+        "message": {"content": "I decided not to act.", "tool_calls": None,
+                    "thinking": '<tool_call>{"name": "calendar.delete_event", '
+                                '"arguments": {}}</tool_call>'},
+        "_latency": 0.01, "prompt_eval_count": 1, "eval_count": 1,
+    }
+    assert p.complete([], tools).tool_calls == []

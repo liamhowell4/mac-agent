@@ -99,7 +99,9 @@ _ROUTE_RE = re.compile(r'"route"\s*:\s*"(act|answer|clarify)"')
 # disambiguation, music.search seeded results, scalar→array coercion, per-call sim status.
 # v5 (2026-06-11): mail.read_message handler + seeded bodies (reply/forward chains stalled
 # on "no data"), Ollama provider recovers tool calls left unparsed in content.
-HARNESS_VERSION = 5
+# v6 (2026-06-11): recovery also scans `thinking` when content is empty — under long
+# contexts the unsloth 9B template routes its whole output (incl. the call) there.
+HARNESS_VERSION = 6
 
 
 @dataclass
@@ -312,7 +314,8 @@ class Runner:
                 predicted.append({**ask.to_dict(), "status": "ok"})
                 q = ask.arguments.get("question", "")
                 opts = ask.arguments.get("options") or []
-                turn_log["text"] = comp.text or (q + (f" Options: {opts}" if opts else ""))
+                rendered = " Options: " + " / ".join(map(str, opts)) if opts else ""
+                turn_log["text"] = comp.text or (q + rendered)
                 trace.append(turn_log)
                 break
 
