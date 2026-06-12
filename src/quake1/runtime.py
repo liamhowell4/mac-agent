@@ -11,11 +11,18 @@ Environment overrides (used by the app-spawned daemon, which has no CLI flags):
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from tooleval.providers.ollama import OllamaProvider
 from tooleval.tools.catalog import load_catalog
 
 from .agent import AgentSession
+
+# Absolute catalog path: the daemon is spawned by the app with cwd=/ — the
+# relative default in load_catalog only works from the repo root.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CATALOG_PATH = Path(os.environ.get("QUAKE_CATALOG",
+                                   str(REPO_ROOT / "data" / "tools" / "catalog.json")))
 
 SHIP_MODEL = "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL"
 
@@ -33,7 +40,7 @@ def build_session(
     if think is None:
         think = os.environ.get("QUAKE_THINK", "off") == "on"
 
-    catalog = load_catalog()
+    catalog = load_catalog(CATALOG_PATH)
     provider = OllamaProvider(model, host=host, think=think)
     if sim:
         from tooleval.tools.simulator import Simulator  # noqa: PLC0415

@@ -235,9 +235,23 @@ class Daemon:
                 None, keep_warm, self.session.provider)
 
 
+async def _socket_in_use(socket_path: Path) -> bool:
+    """True if a live daemon already serves this socket (stale files connect-refuse)."""
+    try:
+        _, w = await asyncio.wait_for(
+            asyncio.open_unix_connection(str(socket_path)), timeout=1.0)
+        w.close()
+        return True
+    except (TimeoutError, OSError):
+        return False
+
+
 async def amain(daemon: Daemon | None = None, socket_path: Path = SOCKET_PATH) -> None:
-    daemon = daemon or Daemon()
     socket_path.parent.mkdir(parents=True, exist_ok=True)
+    if socket_path.exists() and await _socket_in_use(socket_path):
+        # single-instance: another daemon is serving — the app may spawn eagerly
+        return
+    daemon = daemon or Daemon()
     socket_path.unlink(missing_ok=True)
     server = await asyncio.start_unix_server(daemon.handle, path=str(socket_path))
     os.chmod(socket_path, 0o600)
@@ -256,10 +270,19 @@ async def amain(daemon: Daemon | None = None, socket_path: Path = SOCKET_PATH) -
 
 
 def main() -> int:
+    import signal
+    import sys
+
+    # SIGTERM must clean the socket up like ctrl-c does, or the next client
+    # connects to a stale file
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     try:
         asyncio.run(amain())
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         pass
+    finally:
+        SOCKET_PATH.unlink(missing_ok=True)
+        INFO_PATH.unlink(missing_ok=True)
     return 0
 
 

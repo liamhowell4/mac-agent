@@ -62,6 +62,7 @@ final class DaemonProcess {
         let log = try? FileHandle(forWritingTo: logURL)
         p.standardOutput = log ?? FileHandle.nullDevice
         p.standardError = log ?? FileHandle.nullDevice
+        p.currentDirectoryURL = URL(fileURLWithPath: repoPath)
         do {
             try p.run()
             process = p

@@ -18,7 +18,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         client.onConnectFailure = { [weak self] in
             self?.daemon.spawnIfNeeded()
         }
-        client.connect()
+        // Eager spawn: the daemon exits immediately if another instance already
+        // serves the socket, so this is safe and makes startup deterministic.
+        daemon.spawnIfNeeded()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            self?.client.connect()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
