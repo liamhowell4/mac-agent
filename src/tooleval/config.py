@@ -52,11 +52,13 @@ _provider_cache: dict[tuple, Any] = {}
 def build_provider(spec: dict, host: str, seed: int):
     kind = spec["provider"]
     options = spec.get("options") or {}
-    key = (kind, spec["model"], host, seed, tuple(sorted(options.items())))
+    think = spec.get("think")
+    key = (kind, spec["model"], host, seed, tuple(sorted(options.items())), think)
     if key in _provider_cache:
         return _provider_cache[key]
     if kind == "ollama":
-        provider = OllamaProvider(spec["model"], host=host, seed=seed, extra_options=options)
+        provider = OllamaProvider(spec["model"], host=host, seed=seed,
+                                  extra_options=options, think=think)
     elif kind == "mlx":
         from .providers.mlx import MLXProvider  # noqa: PLC0415 — keeps mlx_lm optional
 

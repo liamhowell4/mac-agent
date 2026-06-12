@@ -79,14 +79,21 @@ class OllamaProvider:
         num_ctx: int = 16384,
         num_predict: int = 2048,
         extra_options: dict[str, Any] | None = None,
+        think: bool | None = None,
     ):
         self.model = model
         # Sampling overrides (Qwen explicitly warns against greedy decoding — repetition
         # spirals; its tool-calling rec is temp~0.7-1.0, top_p, top_k, presence_penalty).
         # They are part of the cell identity: same model + different sampling ≠ same cell.
         self.extra_options = extra_options or {}
-        suffix = ("@" + ",".join(f"{k}={v}" for k, v in sorted(self.extra_options.items()))
-                  if self.extra_options else "")
+        # think toggles the model's reasoning channel (top-level Ollama field, not an
+        # option). Measured ~5x latency difference on qwen3.5-4B — also cell identity.
+        self.think = think
+        parts = dict(self.extra_options)
+        if think is not None:
+            parts["think"] = think
+        suffix = ("@" + ",".join(f"{k}={v}" for k, v in sorted(parts.items()))
+                  if parts else "")
         self.name = f"ollama:{model}{suffix}"
         self.host = host.rstrip("/")
         self.seed = seed
@@ -127,6 +134,8 @@ class OllamaProvider:
             "stream": False,
             "options": self._options(),
         }
+        if self.think is not None:
+            payload["think"] = self.think
         if tools:
             payload["tools"] = to_ollama_tools(tools)
         data = self._post(payload)
