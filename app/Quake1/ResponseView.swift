@@ -35,7 +35,7 @@ struct ResponseView: View {
                     if case .error(let message) = client.state {
                         errorRow(message)
                             .padding(12)
-                            .background(cardShape)
+                            .glassCard(cornerRadius: 16)
                     }
                     ForEach(exchanges) { exchange in
                         card(for: exchange)
@@ -52,16 +52,6 @@ struct ResponseView: View {
                 }
             }
         }
-    }
-
-    private var cardShape: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.25), radius: 14, y: 4)
     }
 
     private var isWorking: Bool {
@@ -83,7 +73,7 @@ struct ResponseView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cardShape)
+        .glassCard(cornerRadius: 16)
     }
 
     private var workingLabel: String {

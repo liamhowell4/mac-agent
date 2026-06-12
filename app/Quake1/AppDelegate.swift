@@ -99,7 +99,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setUpPanel() {
         let root = RootView()
             .environmentObject(client)
-        panel = FloatingPanel(rootView: AnyView(root))
+        let panel = FloatingPanel(rootView: AnyView(root))
+        // Keep the panel up through a TCC permission prompt: it loses key focus
+        // when the dialog appears, but a task is in flight, so don't auto-hide.
+        panel.isBusy = { [weak client] in
+            switch client?.state {
+            case .working, .runningTool, .confirming, .asking, .warming:
+                return true
+            default:
+                return false
+            }
+        }
+        self.panel = panel
     }
 
     private func togglePanel() {

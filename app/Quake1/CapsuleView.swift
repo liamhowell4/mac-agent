@@ -23,15 +23,7 @@ struct CapsuleView: View {
             }
             .padding(.horizontal, 20)
             .frame(height: 56)
-            .background(
-                .ultraThinMaterial,
-                in: RoundedRectangle(cornerRadius: 28, style: .continuous)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.35), radius: 24, y: 8)
+            .glassCard(cornerRadius: 28)
 
             if client.state == .idle && client.transcript.isEmpty && text.isEmpty {
                 Text("Press ⌘⌃Space to open Quake anywhere")

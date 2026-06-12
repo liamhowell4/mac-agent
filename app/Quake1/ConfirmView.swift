@@ -32,18 +32,7 @@ struct ConfirmView: View {
             footer
                 .padding(16)
         }
-        .background(
-            .ultraThinMaterial,
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(
-                    request.danger ? Color.red.opacity(0.5) : Color.white.opacity(0.1),
-                    lineWidth: 1
-                )
-        )
-        .shadow(color: .black.opacity(0.3), radius: 20, y: 6)
+        .glassCard(cornerRadius: 16, tintedBorder: request.danger ? .red : nil)
         .onAppear { fields = EditableField.build(from: request) }
         .id(request.id) // rebuild state if a new confirm arrives
     }

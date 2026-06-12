@@ -7,6 +7,13 @@ import SwiftUI
 final class FloatingPanel: NSPanel {
     static let panelWidth: CGFloat = 640
 
+    /// Returns true while the daemon is mid-task (working, running a tool, or
+    /// waiting on a confirm/ask). Set by AppDelegate. We refuse to auto-hide on
+    /// resignKey in that window: a macOS permission (TCC) dialog steals key
+    /// focus exactly then, and the panel vanishing out from under the prompt is
+    /// the worst moment to disappear.
+    var isBusy: () -> Bool = { false }
+
     init(rootView: AnyView) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: Self.panelWidth, height: 600),
@@ -20,7 +27,10 @@ final class FloatingPanel: NSPanel {
         isOpaque = false
         backgroundColor = .clear
         hasShadow = false // the SwiftUI capsule draws its own shadow
-        isMovableByWindowBackground = false
+        // Drag to reposition like Spotlight: grabbing any non-interactive part
+        // of the glass (icon area, padding, response card) moves the panel;
+        // the text field and buttons still receive their own clicks.
+        isMovableByWindowBackground = true
         hidesOnDeactivate = false
         isFloatingPanel = true
         becomesKeyOnlyIfNeeded = false
@@ -40,7 +50,12 @@ final class FloatingPanel: NSPanel {
 
     override func resignKey() {
         super.resignKey()
-        hide()
+        // Don't disappear while a task is in flight — losing key here usually
+        // means a permission dialog (or the app the model is driving) just came
+        // forward. Let it sit behind the dialog; Esc still closes it.
+        if !isBusy() {
+            hide()
+        }
     }
 
     func hide() {
