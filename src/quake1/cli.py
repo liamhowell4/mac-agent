@@ -10,9 +10,9 @@ import argparse
 import json
 import sys
 
-from tooleval.providers.ollama import OllamaProvider, assert_ollama_version
-from tooleval.tools.catalog import load_catalog
+from tooleval.providers.ollama import assert_ollama_version
 
+from . import DEFAULT_HOST
 from .agent import AgentSession
 from .events import (
     AssistantText,
@@ -23,8 +23,7 @@ from .events import (
     ToolFinished,
     ToolStarted,
 )
-
-SHIP_MODEL = "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL"
+from .runtime import build_session
 
 DIM = "\033[2m"
 RED = "\033[31m"
@@ -83,24 +82,12 @@ def _run_until_done(session: AgentSession, events) -> None:
             events = session.resume(_ask_input(blocking))
 
 
-def build_session(model: str, host: str, sim: bool, think: bool | None) -> AgentSession:
-    catalog = load_catalog()
-    provider = OllamaProvider(model, host=host, think=think)
-    if sim:
-        from tooleval.tools.simulator import Simulator  # noqa: PLC0415
-
-        executor = Simulator(catalog)
-    else:
-        from .executor import Executor  # noqa: PLC0415
-
-        executor = Executor(catalog)
-    return AgentSession(provider, catalog, executor)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(prog="quake")
-    ap.add_argument("--model", default=SHIP_MODEL)
-    ap.add_argument("--host", default="http://localhost:11434")
+    ap.add_argument("--model", default=None)
+    ap.add_argument("--host", default=DEFAULT_HOST)
     ap.add_argument("--sim", action="store_true", help="use the simulator (no real actions)")
     ap.add_argument("--think", default="off", choices=("on", "off"),
                     help="override the model's reasoning channel")
@@ -112,12 +99,13 @@ def main() -> int:
         print(f"Ollama not reachable: {e}", file=sys.stderr)
         return 1
 
-    think = {"on": True, "off": False, None: None}[args.think]
-    session = build_session(args.model, args.host, args.sim, think)
+    session = build_session(args.model, args.host, sim=args.sim,
+                            think=(args.think == "on"))
 
     from .warmup import warm  # noqa: PLC0415
 
-    print(f"{DIM}quake-1 — warming up {args.model.split('/')[-1]}...{RESET}", flush=True)
+    model_name = session.provider.model.split('/')[-1]
+    print(f"{DIM}quake-1 — warming up {model_name}...{RESET}", flush=True)
     secs = warm(session.provider, session.catalog, system_prompt=session.system_prompt)
     mode = " (simulator)" if args.sim else ""
     print(f"ready in {secs:.1f}s{mode}. /new resets, /quit exits.")

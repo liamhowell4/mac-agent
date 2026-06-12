@@ -29,9 +29,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-from tooleval.providers.ollama import OllamaProvider
-from tooleval.tools.catalog import load_catalog
-
 from . import __version__
 from .agent import AgentSession
 from .events import (
@@ -42,75 +39,83 @@ from .events import (
     ToolFinished,
     ToolStarted,
 )
+from .runtime import build_session
 
 APP_DIR = Path("~/Library/Application Support/Quake1").expanduser()
 SOCKET_PATH = APP_DIR / "quake1.sock"
 INFO_PATH = APP_DIR / "daemon.json"
 IDLE_RESET_S = 300  # fresh conversation if the user has been away > 5 min
-SHIP_MODEL = "hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL"
 
 
-def _call_dict(call) -> dict:
-    return {"name": call.name, "arguments": call.arguments}
+def _to_wire(ev, qid: str) -> dict:
+    """Event -> protocol message. One mapping, used for every server push."""
+    if isinstance(ev, ToolStarted):
+        return {"type": "tool_started", "id": qid, "call": ev.call.to_dict()}
+    if isinstance(ev, ToolFinished):
+        msg = {"type": "tool_finished", "id": qid, "call": ev.call.to_dict(),
+               "status": ev.status}
+        if ev.hint:
+            msg["hint"] = ev.hint
+        return msg
+    if isinstance(ev, NeedsConfirmation):
+        return {"type": "confirm", "id": qid, "call": ev.call.to_dict(),
+                "danger": ev.danger, "schema": ev.schema}
+    if isinstance(ev, NeedsInput):
+        return {"type": "ask", "id": qid, "question": ev.question, "options": ev.options}
+    if isinstance(ev, AssistantText):
+        return {"type": "text", "id": qid, "text": ev.text}
+    if isinstance(ev, Done):
+        return {"type": "done", "id": qid, "text": ev.text}
+    return {"type": "error", "id": qid, "message": f"unknown event {type(ev).__name__}"}
 
 
 class Daemon:
-    def __init__(self, model: str = SHIP_MODEL, host: str = "http://localhost:11434",
-                 think: bool | None = False):  # think=False: 0.985 @ p50 6.4s on dev
-        catalog = load_catalog()
-        provider = OllamaProvider(model, host=host, think=think)
-        from .executor import Executor  # noqa: PLC0415 — import here so --sim can swap
-
-        self.session = AgentSession(provider, catalog, Executor(catalog))
-        self.catalog = catalog
+    def __init__(self, session: AgentSession | None = None):
+        self.session = session or build_session()
+        self.catalog = self.session.catalog
         self.last_activity = time.time()
         self.ready = False
         self._reply_q: asyncio.Queue[Any] = asyncio.Queue()
-        self._active_id: str | None = None
 
     # ---- session driving (worker thread per step) -----------------------------
 
     async def _stream(self, send, qid: str, events_fn) -> None:
-        """Drive the session in a thread, forwarding events; loop across resumes."""
+        """Drive the session in a thread, pushing each event AS IT IS YIELDED.
+
+        Buffering until the step finishes would hold every tool_started behind
+        multi-second model turns — the panel would look dead. A queue bridges the
+        worker thread to the event loop per event; only blocking decisions round-trip.
+        """
         loop = asyncio.get_running_loop()
+        bridge: asyncio.Queue = asyncio.Queue()
+        _END = object()
+
+        def run_step(fn):
+            try:
+                for ev in fn():
+                    loop.call_soon_threadsafe(bridge.put_nowait, ev)
+            finally:
+                loop.call_soon_threadsafe(bridge.put_nowait, _END)
+
         step = events_fn
         while True:
             blocking = None
-
-            def run_step(fn=step):
-                out = []
-                for ev in fn():
-                    out.append(ev)
-                return out
-
-            events = await loop.run_in_executor(None, run_step)
-            for ev in events:
-                if isinstance(ev, ToolStarted):
-                    await send({"type": "tool_started", "id": qid,
-                                "call": _call_dict(ev.call)})
-                elif isinstance(ev, ToolFinished):
-                    msg = {"type": "tool_finished", "id": qid, "call": _call_dict(ev.call),
-                           "status": ev.status}
-                    if ev.hint:
-                        msg["hint"] = ev.hint
-                    await send(msg)
-                elif isinstance(ev, NeedsConfirmation):
-                    await send({"type": "confirm", "id": qid, "call": _call_dict(ev.call),
-                                "danger": ev.danger, "schema": ev.schema})
+            done = False
+            worker = loop.run_in_executor(None, run_step, step)
+            while True:
+                ev = await bridge.get()
+                if ev is _END:
+                    break
+                await send(_to_wire(ev, qid))
+                if isinstance(ev, (NeedsConfirmation, NeedsInput)):
                     blocking = ev
-                elif isinstance(ev, NeedsInput):
-                    await send({"type": "ask", "id": qid, "question": ev.question,
-                                "options": ev.options})
-                    blocking = ev
-                elif isinstance(ev, AssistantText):
-                    await send({"type": "text", "id": qid, "text": ev.text})
                 elif isinstance(ev, Done):
-                    await send({"type": "done", "id": qid, "text": ev.text})
-                    return
-            if blocking is None:
+                    done = True
+            await worker
+            if done or blocking is None:
                 return
             decision = await self._reply_q.get()
-            if decision is None:  # cancelled
+            if decision is None:  # cancelled while awaiting the user's decision
                 self.session.cancel()
                 await send({"type": "done", "id": qid, "text": None})
                 return
@@ -154,8 +159,12 @@ class Daemon:
                     self.session.reset()
                     self.last_activity = time.time()
                 elif mtype == "cancel":
-                    await self._reply_q.put(None)
-                    if stream_task:
+                    # single teardown path: if the session is parked on a decision the
+                    # sentinel unblocks _stream (which cancels + sends done); otherwise
+                    # cancel the task mid-inference and clean up here.
+                    if self.session.blocked:
+                        await self._reply_q.put(None)
+                    elif stream_task and not stream_task.done():
                         stream_task.cancel()
                         self.session.cancel()
                         await send({"type": "done", "id": msg.get("id"), "text": None})
@@ -171,7 +180,6 @@ class Daemon:
                     text = str(msg.get("text") or "").strip()
                     if not text:
                         continue
-                    self._active_id = qid
                     stream_task = asyncio.create_task(self._run_query(send, qid, text))
                 elif mtype == "confirm_reply":
                     self.last_activity = time.time()

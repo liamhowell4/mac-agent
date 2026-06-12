@@ -7,7 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from ._util import ToolError, as_quote, run_osascript
+from ._util import ToolError, as_quote, run_cmd, run_osascript
 
 SEARCH_ROOTS = ("~/Documents", "~/Downloads", "~/Desktop", "~/Pictures")
 MAX_RESULTS = 50
@@ -41,7 +41,7 @@ def search(args: dict) -> dict:
         ).stdout
         hits = [h for h in out.splitlines() if h.strip()][:MAX_RESULTS]
     except Exception:  # noqa: BLE001 — fall through to the walk
-        hits = []
+        pass
     if not hits:
         tokens = [t.lower() for t in query.split()]
         for r in roots:
@@ -50,7 +50,8 @@ def search(args: dict) -> dict:
             for p in r.rglob("*"):
                 if len(hits) >= MAX_RESULTS:
                     break
-                if p.is_file() and any(t in p.name.lower() for t in tokens):
+                # name check first — is_file() stats every entry otherwise
+                if any(t in p.name.lower() for t in tokens) and p.is_file():
                     hits.append(str(p))
     return {"files": hits}
 
@@ -132,7 +133,7 @@ def rename(args: dict) -> dict:
 
 def open_(args: dict) -> dict:
     p = _resolve_existing(args["path"])
-    subprocess.run(["open", str(p)], check=True, timeout=10)
+    run_cmd(["open", str(p)], timeout=10)
     return {"opened": str(p)}
 
 
@@ -144,13 +145,11 @@ def compress(args: dict) -> dict:
         raise ToolError("paths to compress are required")
     resolved = [_resolve_existing(p) for p in paths]
     dest = _expand(args.get("dest") or f"~/Desktop/archive_{int(time.time())}.zip")
-    argv = ["ditto", "-c", "-k", "--sequesterRsrc"]
     if len(resolved) == 1:
-        subprocess.run([*argv, str(resolved[0]), str(dest)], check=True, timeout=120)
+        run_cmd(["ditto", "-c", "-k", "--sequesterRsrc", str(resolved[0]), str(dest)],
+                timeout=120)
     else:
-        # zip multiple items via a Finder-style parent capture: fall back to zip CLI
-        subprocess.run(["zip", "-r", str(dest), *[str(p) for p in resolved]],
-                       check=True, timeout=120)
+        run_cmd(["zip", "-r", str(dest), *[str(p) for p in resolved]], timeout=120)
     return {"archive": str(dest)}
 
 

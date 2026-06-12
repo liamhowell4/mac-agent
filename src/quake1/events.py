@@ -25,7 +25,6 @@ class ToolStarted(Event):
 @dataclass
 class ToolFinished(Event):
     call: ToolCall
-    result: dict[str, Any]
     status: str  # "ok" | "error"
     hint: str | None = None  # e.g. the System Settings pane for a TCC denial
 
@@ -45,7 +44,6 @@ class NeedsInput(Event):
 
     question: str
     options: list[str] = field(default_factory=list)
-    allow_free_text: bool = True
 
 
 @dataclass

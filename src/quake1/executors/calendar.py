@@ -8,7 +8,6 @@ month-name formatting (locale-safe enough for v1; flagged as a known risk).
 from __future__ import annotations
 
 import datetime as dt
-import json
 import re
 
 from ._util import ToolError, as_quote, run_osascript
@@ -83,26 +82,35 @@ def list_events(args: dict) -> dict:
     return {"events": events}
 
 
-def get_event(args: dict) -> dict:
-    eid = args.get("event_id")
-    if not eid:
-        raise ToolError("event_id is required")
-    script = (
+def _by_uid_script(eid: str, body: str) -> str:
+    """The find-event-by-uid scaffold shared by get/update/delete."""
+    return (
         'tell application "Calendar"\n'
         "  repeat with c in calendars\n"
         f"    set hits to (every event of c whose uid is {as_quote(str(eid))})\n"
         "    if (count of hits) > 0 then\n"
         "      set e to item 1 of hits\n"
-        '      return (uid of e) & "\\t" & (summary of e) & "\\t" & '
-        '((start date of e) as string) & "\\t" & ((end date of e) as string)\n'
+        f"      {body}\n"
         "    end if\n"
         "  end repeat\n"
         "end tell\n"
         'return ""'
     )
-    out = run_osascript(script, timeout=30)
+
+
+def _run_by_uid(eid: str | None, body: str) -> str:
+    if not eid:
+        raise ToolError("event_id is required")
+    out = run_osascript(_by_uid_script(str(eid), body), timeout=30)
     if not out:
         raise ToolError(f"event not found: {eid}")
+    return out
+
+
+def get_event(args: dict) -> dict:
+    out = _run_by_uid(args.get("event_id"),
+                      'return (uid of e) & "\\t" & (summary of e) & "\\t" & '
+                      '((start date of e) as string) & "\\t" & ((end date of e) as string)')
     p = out.split("\t")
     return {"event": {"id": p[0], "title": p[1], "start": p[2], "end": p[3]}}
 
@@ -133,21 +141,29 @@ def create_event(args: dict) -> dict:
 
 
 def create_recurring_event(args: dict) -> dict:
-    base = create_event(args)
     rec = str(args.get("recurrence") or "FREQ=WEEKLY")
     if not rec.upper().startswith("FREQ="):
         freq = {"daily": "DAILY", "weekly": "WEEKLY", "monthly": "MONTHLY",
                 "weekday": "WEEKLY;BYDAY=MO,TU,WE,TH,FR",
                 "weekdays": "WEEKLY;BYDAY=MO,TU,WE,TH,FR"}.get(rec.lower(), "WEEKLY")
         rec = f"FREQ={freq}"
+    title = str(args.get("title") or "").strip()
+    if not title:
+        raise ToolError("a title is required")
+    start = _parse_when(args.get("start"))
+    end = _parse_when(args["end"]) if args.get("end") else start + dt.timedelta(hours=1)
+    # one osascript: create AND set recurrence on the same reference (no uid re-scan)
     script = (
         'tell application "Calendar" to tell calendar 1\n'
-        f"  set e to (first event whose uid is {as_quote(base['event_id'])})\n"
+        f"  set e to make new event with properties {{summary:{as_quote(title)}, "
+        f"start date:{_as_date(start)}, end date:{_as_date(end)}}}\n"
         f"  set recurrence of e to {as_quote(rec)}\n"
+        "  return uid of e\n"
         "end tell"
     )
-    run_osascript(script, timeout=30)
-    return {**base, "recurrence": rec}
+    uid = run_osascript(script, timeout=30)
+    return {"event_id": uid, "title": title, "start": start.isoformat(),
+            "recurrence": rec}
 
 
 def update_event(args: dict) -> dict:
@@ -166,22 +182,8 @@ def update_event(args: dict) -> dict:
         sets.append(f"set end date of e to {_as_date(_parse_when(args['new_end']))}")
     if not sets:
         raise ToolError("nothing to update — pass new_start, new_end, or new_title")
-    body = "\n      ".join(sets)
-    script = (
-        'tell application "Calendar"\n'
-        "  repeat with c in calendars\n"
-        f"    set hits to (every event of c whose uid is {as_quote(str(eid))})\n"
-        "    if (count of hits) > 0 then\n"
-        "      set e to item 1 of hits\n"
-        f"      {body}\n"
-        '      return "updated"\n'
-        "    end if\n"
-        "  end repeat\n"
-        "end tell\n"
-        'return ""'
-    )
-    if not run_osascript(script, timeout=30):
-        raise ToolError(f"event not found: {eid}")
+    body = "\n      ".join(sets) + '\n      return "updated"'
+    _run_by_uid(eid, body)
     return {"event_id": eid, "updated": True}
 
 
@@ -194,24 +196,8 @@ def respond_to_invite(args: dict) -> dict:
 
 def delete_event(args: dict) -> dict:
     eid = args.get("event_id")
-    if not eid:
-        raise ToolError("event_id is required")
-    script = (
-        'tell application "Calendar"\n'
-        "  repeat with c in calendars\n"
-        f"    set hits to (every event of c whose uid is {as_quote(str(eid))})\n"
-        "    if (count of hits) > 0 then\n"
-        "      delete item 1 of hits\n"
-        '      return "deleted"\n'
-        "    end if\n"
-        "  end repeat\n"
-        "end tell\n"
-        'return ""'
-    )
-    if not run_osascript(script, timeout=30):
-        raise ToolError(f"event not found: {eid}")
+    _run_by_uid(eid, 'delete item 1 of hits\n      return "deleted"')
     return {"deleted": eid}
-
 
 def list_calendars(args: dict) -> dict:
     out = run_osascript('tell application "Calendar" to return name of every calendar',
@@ -230,5 +216,3 @@ HANDLERS = {
     "calendar.respond_to_invite": respond_to_invite,
     "calendar.delete_event": delete_event,
 }
-
-_ = json  # reserved for future structured AppleScript output

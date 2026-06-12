@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 import httpx
 
 from ._util import ToolError
@@ -14,9 +16,8 @@ WMO = {0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "overcast",
        71: "snow", 80: "showers", 95: "thunderstorm"}
 
 
-def _geocode(location: str | None) -> tuple[float, float, str]:
-    if not location:
-        raise ToolError("a location is required (e.g. 'Chicago')")
+@lru_cache(maxsize=128)
+def _geocode_cached(location: str) -> tuple[float, float, str]:
     r = httpx.get(GEO, params={"name": location, "count": 1}, timeout=10)
     r.raise_for_status()
     hits = r.json().get("results") or []
@@ -24,6 +25,12 @@ def _geocode(location: str | None) -> tuple[float, float, str]:
         raise ToolError(f"Couldn't find a place called {location!r}")
     h = hits[0]
     return h["latitude"], h["longitude"], h["name"]
+
+
+def _geocode(location: str | None) -> tuple[float, float, str]:
+    if not location:
+        raise ToolError("a location is required (e.g. 'Chicago')")
+    return _geocode_cached(str(location).strip().lower())
 
 
 def current(args: dict) -> dict:

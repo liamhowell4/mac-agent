@@ -32,13 +32,12 @@ def set_volume(args: dict) -> dict:
 
 
 def set_brightness(args: dict) -> dict:
+    import shutil  # noqa: PLC0415
+
     lvl = _level(args)
-    # System Events key-free path: try the `brightness` CLI if present, else AppleScript
-    try:
+    if shutil.which("brightness"):  # no guaranteed-failing spawn when CLI absent
         run_cmd(["brightness", str(lvl / 100)])
         return {"brightness": lvl}
-    except ToolError:
-        pass
     run_osascript(
         'tell application "System Events" to tell every desktop to set brightness '
         f"to {lvl / 100}"

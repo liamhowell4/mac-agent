@@ -44,8 +44,6 @@ class SupportsExecute(Protocol):
 
 
 class SupportsComplete(Protocol):
-    name: str
-
     def complete(self, messages, tools, constrained: bool = False): ...
 
 
@@ -155,18 +153,17 @@ class AgentSession:
                         call = ToolCall(call.name, decision)
                         call = normalize_args(call, schema)
                     elif not decision:
-                        result = json.dumps(
-                            {"status": "error", "message": "User declined this action."}
-                        )
-                        self.messages.append(Msg("tool", result, tool_name=call.name))
-                        yield ToolFinished(call, json.loads(result), "error")
+                        declined = {"status": "error", "message": "User declined this action."}
+                        self.messages.append(
+                            Msg("tool", json.dumps(declined), tool_name=call.name))
+                        yield ToolFinished(call, "error")
                         continue
 
                 yield ToolStarted(call)
                 raw = self.executor.execute(call)
-                result, status, hint = _parse_result(raw)
+                status, hint = _parse_result(raw)
                 self.messages.append(Msg("tool", _truncate(raw), tool_name=call.name))
-                yield ToolFinished(call, result, status, hint)
+                yield ToolFinished(call, status, hint)
 
         text = "I hit my step limit before finishing — want me to keep going?"
         self.messages.append(Msg("assistant", text))
@@ -188,17 +185,17 @@ class AgentSession:
         self.messages = [self.messages[0]] + self.messages[cut:]
 
 
-def _parse_result(raw: str) -> tuple[dict, str, str | None]:
+def _parse_result(raw: str) -> tuple[str, str | None]:
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        return {"raw": raw}, "ok", None
+        return "ok", None
     if not isinstance(data, dict):
-        return {"raw": data}, "ok", None
-    return data, str(data.get("status", "ok")), data.get("hint")
+        return "ok", None
+    return str(data.get("status", "ok")), data.get("hint")
 
 
 def _truncate(raw: str, limit: int = MAX_RESULT_CHARS) -> str:
-    if len(raw) <= limit:
-        return raw
-    return raw[:limit] + '... (truncated)"}'
+    # plain marker — appending fake JSON closers produces malformed JSON more often
+    # than it repairs it; the model handles a visibly truncated blob fine
+    return raw if len(raw) <= limit else raw[:limit] + " …[truncated]"

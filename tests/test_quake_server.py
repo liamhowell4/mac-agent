@@ -37,16 +37,11 @@ class EchoExecutor:
 
 
 def make_daemon(turns) -> Daemon:
-    d = Daemon.__new__(Daemon)  # skip real model/executor construction
     from quake1.agent import AgentSession
 
     catalog = [_schema("system.set_volume"), _schema("calendar.list_events", read_only=True)]
-    d.session = AgentSession(ScriptedProvider(turns), catalog, EchoExecutor())
-    d.catalog = catalog
-    d.last_activity = __import__("time").time()
+    d = Daemon(session=AgentSession(ScriptedProvider(turns), catalog, EchoExecutor()))
     d.ready = True
-    d._reply_q = asyncio.Queue()
-    d._active_id = None
     return d
 
 
