@@ -80,4 +80,29 @@ enum PermissionSetup {
         )!
         NSWorkspace.shared.open(url)
     }
+
+    /// Open System Settings at the Full Disk Access pane. FDA is what lets the daemon
+    /// read ~/Library/Messages/chat.db (message history). Unlike Automation, it can't be
+    /// triggered by an Apple Event — the user must add the binary here manually.
+    static func openFullDiskAccessSettings() {
+        let url = URL(
+            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
+        )!
+        NSWorkspace.shared.open(url)
+    }
+
+    /// The *resolved* binary that actually performs the chat.db read: the daemon's shim
+    /// (`.venv/bin/quake-daemon`) runs `.venv/bin/python3`, a symlink into uv's CPython.
+    /// TCC keys Full Disk Access to that resolved image, so this is what the user drags
+    /// into the FDA list — a symlink or the .app won't do.
+    static func daemonBinaryPath(repoPath: String) -> String {
+        URL(fileURLWithPath: "\(repoPath)/.venv/bin/python3")
+            .resolvingSymlinksInPath().path
+    }
+
+    /// Reveal that binary in Finder so the user can drag it into the FDA list.
+    static func revealDaemonBinary(repoPath: String) {
+        NSWorkspace.shared.activateFileViewerSelecting(
+            [URL(fileURLWithPath: daemonBinaryPath(repoPath: repoPath))])
+    }
 }

@@ -140,11 +140,89 @@ def test_messages_send_requires_body():
         messages.send({"recipient": "+15551234567"})
 
 
-def test_messages_read_side_is_unsupported():
-    for name in ("read_thread", "list_unread", "search", "mark_read", "react"):
+def test_messages_write_side_is_unsupported():
+    # mark_read (a DB write) and react (no API) stay honest stubs; reads are real.
+    for name in ("mark_read", "react"):
         with pytest.raises(ToolError, match="Not supported yet"):
-            messages.HANDLERS[f"messages.{name}"]({"contact": "Ada", "query": "x",
-                                                   "message_id": "1", "reaction": "like"})
+            messages.HANDLERS[f"messages.{name}"]({"contact": "Ada", "reaction": "like"})
+
+
+def _fixture_chatdb(path: Path) -> None:
+    """A minimal chat.db: Ada (read) + Bob (one unread)."""
+    import sqlite3
+
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """
+        CREATE TABLE handle (ROWID INTEGER PRIMARY KEY, id TEXT);
+        CREATE TABLE chat (ROWID INTEGER PRIMARY KEY, chat_identifier TEXT, display_name TEXT);
+        CREATE TABLE message (ROWID INTEGER PRIMARY KEY, text TEXT, attributedBody BLOB,
+                              handle_id INTEGER, date INTEGER, is_from_me INTEGER, is_read INTEGER);
+        CREATE TABLE chat_handle_join (chat_id INTEGER, handle_id INTEGER);
+        CREATE TABLE chat_message_join (chat_id INTEGER, message_id INTEGER, message_date INTEGER);
+        INSERT INTO handle VALUES (1, '+15551234567'), (2, 'bob@example.com');
+        INSERT INTO chat VALUES (1, '+15551234567', 'Ada'), (2, 'bob@example.com', 'Bob');
+        INSERT INTO chat_handle_join VALUES (1, 1), (2, 2);
+        INSERT INTO message VALUES (1, 'hey from Ada', NULL, 1, 700000000000000000, 0, 1);
+        INSERT INTO message VALUES (2, 'reply to Ada', NULL, NULL, 700000000000000001, 1, 1);
+        INSERT INTO message VALUES (3, 'unread from Bob', NULL, 2, 700000000000000002, 0, 0);
+        INSERT INTO chat_message_join VALUES (1, 1, 0), (1, 2, 0), (2, 3, 0);
+        """
+    )
+    conn.commit()
+    conn.close()
+
+
+@pytest.fixture
+def chatdb(tmp_path, monkeypatch):
+    import quake1.executors._chatdb as _chatdb
+
+    path = tmp_path / "chat.db"
+    _fixture_chatdb(path)
+    monkeypatch.setattr(_chatdb, "DB_PATH", path)
+    return path
+
+
+def test_messages_read_thread_returns_conversation(chatdb, monkeypatch):
+    monkeypatch.setattr(messages, "_soft_resolve", lambda c: "+15551234567")
+    out = messages.read_thread({"contact": "Ada"})
+    assert [m["text"] for m in out["messages"]] == ["hey from Ada", "reply to Ada"]
+    assert out["messages"][0]["from"] == "+15551234567"
+    assert out["messages"][1]["from"] == "me"
+
+
+def test_messages_list_unread_groups_by_chat(chatdb):
+    out = messages.list_unread({})
+    assert len(out["conversations"]) == 1
+    assert out["conversations"][0]["contact"] == "Bob"
+    assert out["conversations"][0]["unread_count"] == 1
+
+
+def test_messages_search_scans_bodies(chatdb):
+    out = messages.search({"query": "unread"})
+    assert len(out["matches"]) == 1
+    assert out["matches"][0]["text"] == "unread from Bob"
+
+
+def test_messages_search_requires_query():
+    with pytest.raises(ToolError):
+        messages.search({})
+
+
+def test_chatdb_decodes_attributed_body():
+    from quake1.executors._chatdb import _attributed_body_text
+
+    # 'NSString' marker, '+' frame, single-byte length 5, then 'hello'
+    blob = b"\x00\x84NSString\x01\x94\x84\x01\x2b\x05hello\x86"
+    assert _attributed_body_text(blob) == "hello"
+
+
+def test_chatdb_missing_db_is_tool_error(tmp_path, monkeypatch):
+    import quake1.executors._chatdb as _chatdb
+
+    monkeypatch.setattr(_chatdb, "DB_PATH", tmp_path / "nope.db")
+    with pytest.raises(ToolError, match="not found"):
+        _chatdb.read_thread("Ada", None, 50)
 
 
 # --------------------------------------------------------------------- mail

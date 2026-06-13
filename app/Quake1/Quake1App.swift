@@ -77,6 +77,30 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Full Disk Access (read Messages history)") {
+                Text("Reading iMessage/SMS history isn't scriptable — the daemon reads " +
+                     "chat.db directly, which needs Full Disk Access. macOS keys FDA to the " +
+                     "daemon's resolved binary, NOT to Quake.app, so grant it there:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(PermissionSetup.daemonBinaryPath(repoPath: repoPath))
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                HStack {
+                    Button("Open Full Disk Access Settings") {
+                        PermissionSetup.openFullDiskAccessSettings()
+                    }
+                    Button("Reveal daemon binary in Finder") {
+                        PermissionSetup.revealDaemonBinary(repoPath: repoPath)
+                    }
+                }
+                Text("Drag the revealed binary into the list (or use +), enable it, then " +
+                     "Apply & Restart Daemon below.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Advanced") {
                 TextField("Repo path", text: $repoPath)
                 Text("The daemon runs from <repo>/.venv/bin/quake-daemon")
