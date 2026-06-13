@@ -66,6 +66,28 @@ def unload_all(host: str = "http://localhost:11434") -> list[str]:
     return names
 
 
+def evict_resident_except(keep: set[str], host: str = "http://localhost:11434") -> list[str]:
+    """Unload every resident model whose name isn't in ``keep`` (case-insensitive).
+
+    Guarantees only the intended model(s) stay resident — big inference models never
+    co-reside on memory-constrained Macs, even across separate ``tooleval`` invocations
+    (with --keep-resident on by default, a prior run's model would otherwise linger and
+    pile up). Models in ``keep`` that are already resident stay warm; the rest get
+    ``keep_alive=0``. Best-effort. Returns the names actually evicted.
+    """
+    keep_lower = {k.lower() for k in keep}
+    evicted: list[str] = []
+    for name in list_loaded(host):
+        if name.lower() not in keep_lower:
+            try:
+                httpx.post(f"{host.rstrip('/')}/api/generate",
+                           json={"model": name, "keep_alive": 0}, timeout=30.0)
+                evicted.append(name)
+            except httpx.HTTPError:
+                pass
+    return evicted
+
+
 class OllamaProvider:
     """Completes chat turns via Ollama's native tool-calling endpoint."""
 

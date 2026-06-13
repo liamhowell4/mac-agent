@@ -18,6 +18,7 @@ from .providers.ollama import (
     OllamaProvider,
     OllamaVersionError,
     assert_ollama_version,
+    evict_resident_except,
     unload_all,
 )
 from .providers.openrouter import OpenRouterJudge
@@ -47,8 +48,14 @@ def cmd_run(args: argparse.Namespace) -> int:
         f"catalog={len(catalog)} tools  tasks={len(tasks)}"
     )
 
-    provider = OllamaProvider(args.model, host=args.host, seed=args.seed)
+    provider = OllamaProvider(args.model, host=args.host, seed=args.seed,
+                              keep_alive=args.keep_alive)
     retriever = PassthroughRetriever()
+    # Evict any other resident model (e.g. left over from a prior --keep-resident run) so
+    # only this one is loaded — big models never co-reside on 16GB.
+    evicted = evict_resident_except({args.model}, args.host)
+    if evicted:
+        print(f"[swap] evicted to make room: {', '.join(evicted)}")
     runner = Runner(
         provider, retriever, catalog,
         seed=args.seed, k=args.k,
@@ -72,9 +79,12 @@ def cmd_run(args: argparse.Namespace) -> int:
                 print(f"  [{i:>2}/{len(tasks)}] {task.id:<14} {task.tier:<9} {mark} "
                       f"({rec.turns}t, {rec.latency_s:.1f}s){flag}")
     finally:
-        freed = unload_all(args.host)  # take down ALL models when done
-        if freed:
-            print(f"[cleanup] unloaded: {', '.join(freed)}")
+        if args.keep_resident:
+            print("[keep-resident] model left loaded; skipped unload")
+        else:
+            freed = unload_all(args.host)  # take down ALL models when done
+            if freed:
+                print(f"[cleanup] unloaded: {', '.join(freed)}")
 
     metrics = aggregate(records)
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
@@ -144,12 +154,21 @@ def cmd_matrix(args: argparse.Namespace) -> int:
                     print(f"\n[cell {ci}/{len(combos)}] skipped — "
                           f"unknown prompt label {prompt_label!r}")
                     continue
-                provider = build_provider(mspec, args.host, seed)
+                provider = build_provider(mspec, args.host, seed, keep_alive=args.keep_alive)
                 if prev_provider is not None and prev_provider.name != provider.name:
                     print(f"   (unloading {prev_provider.name})")
                     prev_provider.unload()
                 prev_provider = provider
                 retriever, k = build_retriever(rspec, args.host)
+                # Evict any resident Ollama model that isn't this cell's model (or its embed
+                # model) — clears leftovers from a prior run AND guarantees no two big models
+                # co-reside. MLX weights are freed by prev_provider.unload() above.
+                keep = {mspec["model"]}
+                if rspec.get("embed_model"):
+                    keep.add(rspec["embed_model"])
+                evicted = evict_resident_except(keep, args.host)
+                if evicted:
+                    print(f"   (evicted to make room: {', '.join(evicted)})")
                 runner = Runner(
                     provider, retriever, catalog,
                     seed=seed, k=k or args.k, decoding=decoding,
@@ -169,11 +188,14 @@ def cmd_matrix(args: argparse.Namespace) -> int:
                 print(f"   pass={o['task_pass_rate']}  tool_sel={o['tool_selection_accuracy']}  "
                       f"overcall={o['overcall_rate']}  recall={o['retrieval_recall']}")
     finally:
-        if prev_provider is not None:
-            prev_provider.unload()  # unload_all only covers Ollama; this frees MLX weights too
-        freed = unload_all(args.host)  # take down ALL models (incl. embed) when done
-        if freed:
-            print(f"\n[cleanup] unloaded: {', '.join(freed)}")
+        if args.keep_resident:
+            print("\n[keep-resident] model(s) left loaded; skipped unload")
+        else:
+            if prev_provider is not None:
+                prev_provider.unload()  # unload_all only covers Ollama; this frees MLX weights too
+            freed = unload_all(args.host)  # take down ALL models (incl. embed) when done
+            if freed:
+                print(f"\n[cleanup] unloaded: {', '.join(freed)}")
 
     (out_dir / "matrix.json").write_text(json.dumps(cells_out, indent=2))
     _print_matrix(cells_out)
@@ -251,6 +273,12 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--k", type=int, default=8, help="top-k (unused for passthrough)")
     run.add_argument("--out", default="results")
     run.add_argument("--no-cache", action="store_true")
+    run.add_argument("--keep-resident", action=argparse.BooleanOptionalAction, default=True,
+                     help="leave the model loaded after the run so re-runs start warm "
+                          "(default; use --no-keep-resident to unload after the run)")
+    run.add_argument("--keep-alive", default=None,
+                     help="Ollama keep_alive duration, e.g. 30m / 2h / 48h (-1 = forever). "
+                          "Sets how long the pin holds; best with --keep-resident")
     run.set_defaults(func=cmd_run)
 
     mat = sub.add_parser("matrix", help="run the full cell matrix from a config (M2)")
@@ -261,6 +289,12 @@ def main(argv: list[str] | None = None) -> int:
     mat.add_argument("--k", type=int, default=8)
     mat.add_argument("--out", default="results")
     mat.add_argument("--no-cache", action="store_true")
+    mat.add_argument("--keep-resident", action="store_true",
+                     help="leave models loaded after the run (skip final unload) so "
+                          "re-runs start warm instead of paying the ~4s cold load per model")
+    mat.add_argument("--keep-alive", default=None,
+                     help="Ollama keep_alive duration, e.g. 30m / 2h / 48h (-1 = forever). "
+                          "Sets how long the pin holds; best with --keep-resident")
     mat.set_defaults(func=cmd_matrix)
 
     rep = sub.add_parser("report", help="judge clarify tasks + render markdown/HTML report (M4)")

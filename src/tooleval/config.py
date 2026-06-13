@@ -49,16 +49,16 @@ def load_config(path: str | Path) -> dict:
 _provider_cache: dict[tuple, Any] = {}
 
 
-def build_provider(spec: dict, host: str, seed: int):
+def build_provider(spec: dict, host: str, seed: int, keep_alive: str | None = None):
     kind = spec["provider"]
     options = spec.get("options") or {}
     think = spec.get("think")
-    key = (kind, spec["model"], host, seed, tuple(sorted(options.items())), think)
+    key = (kind, spec["model"], host, seed, tuple(sorted(options.items())), think, keep_alive)
     if key in _provider_cache:
         return _provider_cache[key]
     if kind == "ollama":
         provider = OllamaProvider(spec["model"], host=host, seed=seed,
-                                  extra_options=options, think=think)
+                                  extra_options=options, think=think, keep_alive=keep_alive)
     elif kind == "mlx":
         from .providers.mlx import MLXProvider  # noqa: PLC0415 — keeps mlx_lm optional
 
