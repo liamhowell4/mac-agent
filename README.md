@@ -1,45 +1,79 @@
-# mac-agent / tooleval
+# mac-agent — Quake-1
 
-A local **tool-calling eval harness** for small models (Qwen 3.5, Gemma 4) on macOS/MCP tasks.
-It answers one decision: **fine-tune a small local model, or ship zero-shot with good scaffolding?**
+A **local macOS assistant** that controls your Mac through ~100 tools (calendar, mail,
+messages, contacts, files, system, music, web, …) using a small model running entirely
+on-device. No cloud in the hot path.
 
-The core insight: zero-shot tool-calling quality is dominated by **scaffolding, not the raw model**.
-So scaffolding is a first-class, toggleable variable. Every run is a
-`(model × retrieval × decoding × prompt)` **cell**, and the report compares cells per difficulty tier.
+The repo holds two things:
 
-See `docs/build-brief.md` for the full spec, `CLAUDE.md` for resolved design decisions, and
-`.claude/artifacts/plan-tooleval.html` for the visual roadmap.
+- **`quake1/`** — the product. A local agent runtime + a native SwiftUI launcher.
+- **`tooleval/`** — the eval harness that was the **testing period for Quake-1**: it ran the
+  bake-off that picked the model, prompt, and decoding Quake-1 ships, and it stays as the
+  held-out test set + grader for any future fine-tune.
 
-## Status
+## Quake-1 (the product)
 
-**M1 complete** — skeleton + `single`/`negative` tiers, Ollama provider, passthrough retriever,
-deterministic simulator, programmatic grader, agentic loop runner, `(cell,task)` cache, CLI.
-Next: M2 (embedding retrieval + constrained decoding + Gemma path + full matrix).
+A Spotlight-style launcher (global hotkey) → type a request → the agent plans and executes
+real macOS actions, asking before anything destructive.
 
-## Quickstart
+- **Ship config** (eval-validated): `unsloth/Qwen3.5-4B-MTP` (Q4_K_XL GGUF) via Ollama,
+  fewshot prompt, greedy decoding, thinking off. Scored **0.985 judged · chains 14/14 ·
+  over-call 0.0 · p50 6.4s** on the harness.
+- **Three surfaces:** terminal REPL (`quake`), a daemon (`quake-daemon`, NDJSON over a Unix
+  socket), and **Quake1.app** (SwiftUI, Liquid Glass panel, drag-to-move, survives permission
+  dialogs).
+- **~20 executor domains** under `src/quake1/executors/` (calendar, mail, messages via
+  `chat.db`, contacts, files, system, music, web, apps, clipboard, screen, weather, network,
+  devices, calls, reminders, shell, notes).
+- **Safety model:** read-only tools run free; mutations ask y/N; dangerous ops
+  (`shell.run_command`, `system.restart_or_shutdown`, `files.delete`) require typing `yes`.
 
 ```bash
-uv venv --python 3.11
-uv pip install -e ".[dev]"
-source .venv/bin/activate
-
-# requires a local Ollama (>= 0.20.2) with the model pulled
-ollama pull qwen3.5:4b          # or use the default qwen3.5:0.8b
-tooleval run --model qwen3.5:4b
-
-pytest                          # adapters + grader tests
+quake                       # terminal REPL (in-process, no daemon)
+quake-daemon                # socket daemon for the app
 ```
 
-Outputs land in `results/<timestamp>/` (`raw.jsonl` full traces + `metrics.json`).
+### Native app
+
+The app is signed with a **stable self-signed identity** so macOS TCC permission grants
+(Calendar/Mail/Automation/…) survive rebuilds — see `CLAUDE.md` for the keychain details.
+
+```bash
+security unlock-keychain -p quake-signing ~/Library/Keychains/quake-signing.keychain-db
+cd app && xcodegen generate && xcodebuild -scheme Quake1 -configuration Release build
+```
+
+## tooleval (the harness that validated it)
+
+Every run is a `(model × retrieval × decoding × prompt)` **cell**; the report compares cells
+per difficulty tier (single / chain / ambiguous / negative). **M1–M4 complete** — Ollama +
+MLX + LiteRT providers, passthrough + embedding retrieval, constrained-decoding toggle,
+cloud LLM judge (OpenRouter), markdown/HTML scorecard. A **528-run matrix** drove the ship
+decision; see `docs/handoff-2026-06-09.md` for results and caveats.
+
+```bash
+uv venv --python 3.11 && uv pip install -e ".[dev]" && source .venv/bin/activate
+
+ollama pull hf.co/unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL   # the ship model
+tooleval run --model qwen3.5:4b-mlx                          # single cell
+tooleval matrix --config config/run.example.yaml            # full matrix → results/<ts>/
+tooleval report --results results/<ts>                       # judge + render scorecard
+
+pytest                                                       # 14 test files
+```
 
 ## Layout
 
 ```
-data/tools/catalog.json   103 canonical tool schemas (authored via catalog_builder.html)
-data/tasks/*.json         eval tasks, one file per tier
-config/run.example.yaml   the run matrix + scaffold knobs
+src/quake1/               agent loop, daemon server, safety, executors/ (20 macOS domains)
 src/tooleval/             providers/ retrieval/ tools/ eval/ report/
+app/Quake1/               native SwiftUI launcher
+data/tools/catalog.json   ~104 canonical tool schemas (authored via catalog_builder.html)
+data/tasks/*.json         66 eval tasks, one file per tier (held-out sets in data/tasks_holdout*/)
+config/*.yaml             run matrices + scaffold knobs
+docs/build-brief.md       full spec   ·   docs/handoff-2026-06-09.md   resume-here notes
 ```
 
-The catalog is authored in `catalog_builder.html` (open in a browser, edit, Copy JSON). The LLM
-judge (M3) is cloud via OpenRouter — set `OPENROUTER_API_KEY` in `.env` (see `.env.example`).
+The tool catalog is hand-authored in `catalog_builder.html` (open in a browser, edit, Copy
+JSON). The LLM judge is cloud via OpenRouter — set `OPENROUTER_API_KEY` in `.env` (see
+`.env.example`). See `CLAUDE.md` for the locked design decisions.
